@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Odara Academy v3</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--y:#FFB81D;--r:#EE2737;--g:#1D9E75;--b:#378ADD;--p:#534AB7;--dk:#0C0C0C;--bg:#F5F3EE;--card:#FFFFFF;--bdr:#E8E5DD;--tx:#1A1A1A;--txs:#666;--txm:#999;--radius:10px;--sh:0 1px 3px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100dvh;overflow-x:hidden}
+.app{max-width:500px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+
+/* NAV */
+.bnav{display:flex;background:var(--card);border-top:1px solid var(--bdr);position:fixed;bottom:0;left:0;right:0;z-index:100;padding:4px 0 env(safe-area-inset-bottom,4px)}
+.bnav button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:9px;color:var(--txm);cursor:pointer}
+.bnav button.on{color:var(--y)}
+.bnav .ni{font-size:18px;line-height:1}
+
+/* SCREENS */
+.sc{display:none;flex:1;padding-bottom:70px}
+.sc.on{display:flex;flex-direction:column}
+
+/* HEADER */
+.hdr{background:var(--dk);padding:16px 16px 20px;color:#fff}
+.hdr .greet{font-size:11px;color:#888}
+.hdr .name{font-size:18px;font-weight:700;color:var(--y)}
+.hdr .sub{font-size:11px;color:#aaa;margin-top:2px}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--sh);margin:0 12px 8px;padding:14px;border:1px solid var(--bdr)}
+.card:active{transform:scale(.99)}
+.card .ct{display:flex;align-items:flex-start;gap:10px}
+.card .ci{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.card .cn{font-size:13px;font-weight:600;line-height:1.3}
+.card .cs{font-size:10px;color:var(--txs);margin-top:2px}
+.card .cb{height:4px;background:#eee;border-radius:2px;margin-top:10px;overflow:hidden}
+.card .cf{height:100%;border-radius:2px}
+.card .cm{display:flex;justify-content:space-between;font-size:10px;color:var(--txs);margin-top:4px}
+
+/* PILLS */
+.pill{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;display:inline-block}
+
+/* SECTION */
+.sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txs);padding:16px 16px 8px}
+
+/* TRAIL DETAIL */
+.trail-hero{background:var(--dk);padding:16px;color:#fff}
+.trail-hero h2{font-size:16px;font-weight:700;color:var(--y)}
+.trail-hero .tm{font-size:11px;color:#999;margin-top:4px}
+.tstat{display:flex;gap:12px;margin-top:12px}
+.tstat div{text-align:center}
+.tstat .v{font-size:18px;font-weight:700}
+.tstat .l{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px}
+.tbar{height:6px;background:#333;border-radius:3px;margin-top:12px;overflow:hidden}
+.tbar .tf{height:100%;background:var(--y);border-radius:3px}
+
+/* MODULE */
+.mod{margin:8px 12px}
+.mhdr{display:flex;align-items:center;gap:8px;padding:10px 0;cursor:pointer}
+.mhdr .mdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.mhdr .mt{font-size:13px;font-weight:600;flex:1}
+.mhdr .mx{font-size:10px;color:var(--txs)}
+.mhdr .mc{font-size:12px;color:var(--txs);transition:transform .2s}
+.mhdr .mc.open{transform:rotate(180deg)}
+.mitems{display:none;padding-left:34px}
+.mitems.open{display:block}
+.mi{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:2px;font-size:12px;cursor:pointer;transition:background .15s}
+.mi:hover{background:#f5f3ee}
+.mi .ico{width:22px;text-align:center;font-size:11px;flex-shrink:0}
+.mi .mname{flex:1;line-height:1.3}
+.mi .mname small{display:block;font-size:10px;color:var(--txs)}
+.mi .mxp{font-size:9px;color:var(--txs);background:#f0ede5;padding:2px 6px;border-radius:8px}
+.mi .mchk{width:18px;height:18px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.mi .mchk.done{background:var(--g);border-color:var(--g);color:#fff}
+.conn{width:2px;height:8px;background:var(--bdr);margin:0 0 0 10px}
+
+/* FORMS */
+input,select,textarea{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--bdr);border-radius:8px;background:var(--card);color:var(--tx);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--y)}
+textarea{resize:vertical;min-height:60px}
+label{font-size:11px;font-weight:600;color:var(--txs);display:block;margin-bottom:4px}
+.fgroup{margin-bottom:12px}
+.btn{border:none;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-y{background:var(--y);color:var(--dk)}
+.btn-r{background:var(--r);color:#fff}
+.btn-g{background:var(--g);color:#fff}
+.btn-o{background:none;border:1px solid var(--bdr);color:var(--tx)}
+.btn-sm{padding:6px 12px;font-size:11px}
+.btn-block{width:100%}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--card);border-radius:16px 16px 0 0;padding:20px 16px env(safe-area-inset-bottom,16px);width:100%;max-width:500px;max-height:85dvh;overflow-y:auto}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal h3 .close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--txs)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;padding:8px 12px;overflow-x:auto}
+.tab{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;border:none;background:#eee;color:var(--txs);cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--dk);color:var(--y)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{text-align:left;padding:8px 6px;font-weight:600;color:var(--txs);border-bottom:1px solid var(--bdr);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+.tbl td{padding:6px;border-bottom:1px solid #f0ede5;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.lvl{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.l0{background:#f0ede5;color:#999}.l1{background:#FAEEDA;color:#854F0B}.l2{background:#E6F1FB;color:#185FA5}.l3{background:#EAF3DE;color:#3B6D11}.l4{background:#EEEDFE;color:#534AB7}
+.gap{background:#FCEBEB;color:#A32D2D;font-size:8px;padding:1px 5px;border-radius:8px;font-weight:600}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:0 12px;margin-bottom:12px}
+.kpi{background:var(--card);border-radius:var(--radius);padding:12px;text-align:center;box-shadow:var(--sh)}
+.kpi .kv{font-size:20px;font-weight:700}.kpi .kl{font-size:9px;color:var(--txs);margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--txs)}
+.empty .ei{font-size:40px;margin-bottom:8px}
+
+/* LIST ITEM */
+.li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f0ede5;cursor:pointer}
+.li:hover{background:#faf8f3}
+.li:active{background:#f0ede5}
+.li .avatar{width:32px;height:32px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.li .info{flex:1;min-width:0}
+.li .info .n{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .info .s{font-size:10px;color:var(--txs)}
+.li .act{font-size:10px;color:var(--txs)}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:30px;color:var(--txs);font-size:12px}
+.spinner{width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--y);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- LOGIN -->
+<div class="sc on" id="sc-login">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+    <div style="font-size:32px;font-weight:800;color:var(--y);margin-bottom:4px">ODARA</div>
+    <div style="font-size:11px;color:var(--txs);margin-bottom:30px;letter-spacing:1px">ACADEMY v3</div>
+    <div style="width:100%;max-width:300px">
+      <div class="fgroup"><label>Email</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
+      <div class="fgroup"><label>Senha</label><input type="password" id="login-pass" placeholder="Sua senha"></div>
+      <button class="btn btn-y btn-block" onclick="doLogin()" id="login-btn">Entrar</button>
+      <div id="login-msg" style="font-size:11px;color:var(--r);text-align:center;margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="sc" id="sc-home">
+  <div class="hdr" id="home-hdr">
+    <div class="greet" id="h-greet">Bem-vindo</div>
+    <div class="name" id="h-name">—</div>
+    <div class="sub" id="h-role">—</div>
+  </div>
+  <div class="scroll" id="home-scroll">
+    <div class="loading" id="home-loading"><div class="spinner"></div>Carregando...</div>
+    <div id="home-content" style="display:none">
+      <div class="sec">Trilhas atribuídas</div>
+      <div id="home-trails"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TRILHA DETALHE -->
+<div class="sc" id="sc-trail">
+  <div class="trail-hero" id="trail-hero">
+    <div style="font-size:10px;cursor:pointer;color:#888;margin-bottom:8px" onclick="goSc('home')">← Voltar</div>
+    <h2 id="tr-titulo">—</h2>
+    <div class="tm" id="tr-desc">—</div>
+    <div class="tstat">
+      <div><div class="v" id="tr-mods">0</div><div class="l">Módulos</div></div>
+      <div><div class="v" id="tr-items">0</div><div class="l">Conteúdos</div></div>
+      <div><div class="v" id="tr-xp">0</div><div class="l">XP total</div></div>
+    </div>
+    <div class="tbar"><div class="tf" id="tr-bar" style="width:0%"></div></div>
+  </div>
+  <div class="scroll" id="trail-modules"></div>
+</div>
+
+<!-- GESTÃO -->
+<div class="sc" id="sc-manage">
+  <div class="hdr">
+    <div class="name">Gestão</div>
+    <div class="sub" id="mg-sub">Painel administrativo</div>
+  </div>
+  <div class="tabs" id="mg-tabs">
+    <button class="tab on" onclick="mgTab('trilhas')">Trilhas</button>
+    <button class="tab" onclick="mgTab('pessoas')">Pessoas</button>
+    <button class="tab" onclick="mgTab('matriz')">Matriz</button>
+    <button class="tab" onclick="mgTab('geral')">Visão geral</button>
+  </div>
+  <div class="scroll">
+    <div id="mg-trilhas" class="mg-pane"></div>
+    <div id="mg-pessoas" class="mg-pane" style="display:none"></div>
+    <div id="mg-matriz" class="mg-pane" style="display:none"></div>
+    <div id="mg-geral" class="mg-pane" style="display:none"></div>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div class="sc" id="sc-perfil">
+  <div class="hdr"><div class="name" id="pf-name">—</div><div class="sub" id="pf-role">—</div></div>
+  <div class="scroll" id="perfil-content"></div>
+</div>
+
+<!-- NAV -->
+<div class="bnav" id="bnav" style="display:none">
+  <button class="on" onclick="goSc('home')"><span class="ni">🏠</span>Início</button>
+  <button onclick="goSc('manage')"><span class="ni">⚙️</span>Gestão</button>
+  <button onclick="goSc('perfil')"><span class="ni">👤</span>Perfil</button>
+  <button onclick="doLogout()"><span class="ni">🚪</span>Sair</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const SB_URL='https://khqbimmcibutfrfmkoxr.supabase.co'
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo'
+const sb=supabase.createClient(SB_URL,SB_KEY)
+let ME=null,ALL_TRAILS=[],ALL_PEOPLE=[],ALL_COMP=[]
+
+const COLORS={Operacional:['#FAEEDA','#EF9F27','#854F0B'],Qualidade:['#EEEDFE','#7F77DD','#534AB7'],BPF:['#EEEDFE','#7F77DD','#534AB7'],Segurança:['#FCEBEB','#E24B4A','#A32D2D'],Onboarding:['#E1F5EE','#1D9E75','#0F6E56']}
+const TIPO_ICO={video:'▶',texto:'📄',audio:'🎧',imagem:'🖼',atividade:'🔧',validacao:'✓'}
+const TIPO_NOME={video:'Vídeo',texto:'Leitura',audio:'Áudio',imagem:'Imagem'}
+const LVL=['Não conhece','Conhece','Aplica','Ensina']
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim()
+  const pass=document.getElementById('login-pass').value
+  const msg=document.getElementById('login-msg')
+  if(!email){msg.textContent='Informe o email';return}
+  document.getElementById('login-btn').textContent='Entrando...'
+  if(pass){
+    const{error}=await sb.auth.signInWithPassword({email,password:pass})
+    if(error){msg.textContent='Erro: '+error.message;document.getElementById('login-btn').textContent='Entrar';return}
+  }else{
+    const{error}=await sb.auth.signInWithOtp({email})
+    if(error){msg.textContent=error.message;document.getElementById('login-btn').textContent='Entrar';return}
+    msg.style.color='var(--g)';msg.textContent='Link enviado! Verifique seu email.';document.getElementById('login-btn').textContent='Entrar';return
+  }
+  await initApp()
+}
+async function doLogout(){await sb.auth.signOut();ME=null;goSc('login');document.getElementById('bnav').style.display='none'}
+
+async function checkAuth(){
+  const{data:{session}}=await sb.auth.getSession()
+  if(!session){
+    const hash=window.location.hash
+    if(hash&&hash.includes('access_token')){
+      const params=new URLSearchParams(hash.substring(1))
+      const at=params.get('access_token'),rt=params.get('refresh_token')
+      if(at&&rt){await sb.auth.setSession({access_token:at,refresh_token:rt});window.location.hash=''}
+    }
+    const{data:{session:s2}}=await sb.auth.getSession()
+    if(!s2) return false
+  }
+  return true
+}
+
+async function initApp(){
+  const ok=await checkAuth()
+  if(!ok){goSc('login');return}
+  const{data:{user}}=await sb.auth.getUser()
+  let profile=null
+  // Tenta com joins primeiro, fallback sem joins se der erro
+  const{data:pj,error:ej}=await sb.from('profiles').select('*,areas(nome),cargos(nome)').eq('id',user.id).single()
+  if(!ej&&pj){profile=pj}
+  else{
+    const{data:ps}=await sb.from('profiles').select('*').eq('id',user.id).single()
+    profile=ps
+  }
+  if(!profile){document.getElementById('login-msg').textContent='Perfil não encontrado. Verifique se a tabela profiles existe e tem seu usuário.';document.getElementById('login-btn').textContent='Entrar';goSc('login');return}
+  ME=profile
+  // Busca nome do cargo e area separadamente se não veio do join
+  if(!ME.cargos&&ME.cargo_id){const{data:c}=await sb.from('cargos').select('nome').eq('id',ME.cargo_id).single();ME.cargos=c}
+  if(!ME.areas&&ME.area_id){const{data:a}=await sb.from('areas').select('nome').eq('id',ME.area_id).single();ME.areas=a}
+  document.getElementById('h-greet').textContent='Olá,'
+  document.getElementById('h-name').textContent=ME.nome
+  document.getElementById('h-role').textContent=(ME.cargos?.nome||'')+(ME.areas?.nome?' · '+ME.areas.nome:'')
+  document.getElementById('pf-name').textContent=ME.nome
+  document.getElementById('pf-role').textContent=(ME.cargos?.nome||'')
+  document.getElementById('bnav').style.display='flex'
+  goSc('home')
+  loadHome()
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function goSc(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'))
+  document.getElementById('sc-'+id).classList.add('on')
+  document.querySelectorAll('.bnav button').forEach((b,i)=>{
+    b.classList.remove('on')
+    if((id==='home'&&i===0)||(id==='manage'&&i===1)||(id==='perfil'&&i===2)) b.classList.add('on')
+  })
+  if(id==='manage') loadManage()
+  if(id==='perfil') loadPerfil()
+}
+
+// ══════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════
+async function loadHome(){
+  document.getElementById('home-loading').style.display='flex'
+  document.getElementById('home-content').style.display='none'
+  const{data:atrib}=await sb.from('trilhas_atribuicoes').select('trilha_id').or(`profile_id.eq.${ME.id},area_id.eq.${ME.area_id||'x'},cargo_id.eq.${ME.cargo_id||'x'}`)
+  const ids=[...new Set((atrib||[]).map(a=>a.trilha_id))]
+  let html=''
+  if(ids.length){
+    const{data}=await sb.from('trilhas').select('*,progresso_trilhas!left(*)').in('id',ids).eq('ativo',true).order('categoria')
+    const trails=(data||[]).map(t=>({...t,prog:(t.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)}))
+    ALL_TRAILS=trails
+    trails.forEach(t=>{
+      const pct=t.prog?Math.round(t.prog.percentual):0
+      const col=COLORS[t.categoria]||COLORS.Operacional
+      html+=`<div class="card" onclick="openTrail('${t.id}')">
+        <div class="ct">
+          <div class="ci" style="background:${col[0]};color:${col[2]}">${t.titulo.substring(0,2).toUpperCase()}</div>
+          <div style="flex:1;min-width:0">
+            <div class="cn">${t.titulo}</div>
+            <div class="cs">${t.categoria}${t.obrigatoria?' · Obrigatória':''}</div>
+          </div>
+          <span class="pill" style="background:${pct>=100?'#EAF3DE;color:#3B6D11':pct>0?'#E6F1FB;color:#185FA5':'#f0ede5;color:#888'}">${pct>=100?'✓ Concluída':pct>0?pct+'%':'Novo'}</span>
+        </div>
+        <div class="cb"><div class="cf" style="width:${pct}%;background:${col[1]}"></div></div>
+        <div class="cm"><span>${t.prazo_dias?t.prazo_dias+' dias de prazo':'Sem prazo'}</span><span>${t.xp_conclusao} XP</span></div>
+      </div>`
+    })
+  }else{html='<div class="empty"><div class="ei">📚</div><p>Nenhuma trilha atribuída</p></div>'}
+  document.getElementById('home-trails').innerHTML=html
+  document.getElementById('home-loading').style.display='none'
+  document.getElementById('home-content').style.display='block'
+}
+
+// ══════════════════════════════════════════
+// TRAIL DETAIL
+// ══════════════════════════════════════════
+async function openTrail(id){
+  goSc('trail')
+  document.getElementById('trail-modules').innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  const{data}=await sb.from('trilhas').select(`*,progresso_trilhas!left(*),modulos(id,titulo,ordem,ativo,conteudos(id,tipo,titulo,duracao_min,url,ordem,xp_conclusao,obrigatorio,subtipo,progresso_conteudos!left(*)),avaliacoes(id,titulo,nota_minima,xp_aprovacao,ordem))`).eq('id',id).single()
+  if(!data)return
+  const col=COLORS[data.categoria]||COLORS.Operacional
+  document.getElementById('tr-titulo').textContent=data.titulo
+  document.getElementById('tr-desc').textContent=data.descricao||''
+  const mods=(data.modulos||[]).sort((a,b)=>a.ordem-b.ordem)
+  let totalItems=0,totalXp=data.xp_conclusao||0
+  mods.forEach(m=>{totalItems+=m.conteudos?.length||0;totalItems+=m.avaliacoes?.length||0})
+  document.getElementById('tr-mods').textContent=mods.length
+  document.getElementById('tr-items').textContent=totalItems
+  document.getElementById('tr-xp').textContent=totalXp
+  const prog=(data.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)
+  const pct=prog?Math.round(prog.percentual):0
+  document.getElementById('tr-bar').style.width=pct+'%'
+
+  let h=''
+  mods.forEach((m,mi)=>{
+    const items=[...(m.conteudos||[]).sort((a,b)=>a.ordem-b.ordem),...(m.avaliacoes||[]).map(a=>({...a,tipo:'avaliacao',xp_conclusao:a.xp_aprovacao})).sort((a,b)=>a.ordem-b.ordem)]
+    const mXp=items.reduce((s,i)=>s+(i.xp_conclusao||0),0)
+    h+=`<div class="mod"><div class="mhdr" onclick="toggleMod(this)">
+      <div class="mdot" style="background:${col[0]};color:${col[2]}">${mi+1}</div>
+      <div class="mt">${m.titulo}</div><div class="mx">${mXp} XP</div>
+      <div class="mc ${mi===0?'open':''}">▼</div>
+    </div><div class="mitems ${mi===0?'open':''}">`
+    items.forEach((it,ii)=>{
+      const done=(it.progresso_conteudos||[]).some(p=>p.profile_id===ME.id&&p.concluido)
+      const st=it.subtipo
+      let ico=TIPO_ICO[it.tipo]||'📝'
+      let tname=TIPO_NOME[it.tipo]||it.tipo
+      if(st==='atividade_supervisionada'){ico='🔧';tname='Atividade supervisionada'}
+      if(st==='validacao_supervisor'){ico='✓';tname='Validação do supervisor'}
+      if(st==='validacao_facilitador'){ico='✓';tname='Validação do facilitador'}
+      if(it.tipo==='avaliacao'){ico='📝';tname='Teste/Quiz'}
+      h+=`<div class="mi" onclick="markContent('${it.id}','${it.tipo}')">
+        <div class="ico" style="color:${col[2]}">${ico}</div>
+        <div class="mname">${it.titulo}<small>${tname}${it.duracao_min?' · '+it.duracao_min+' min':''}</small></div>
+        <div class="mxp">+${it.xp_conclusao||0} XP</div>
+        <div class="mchk ${done?'done':''}">${done?'✓':''}</div>
+      </div>`
+      if(ii<items.length-1) h+='<div class="conn"></div>'
+    })
+    h+='</div></div>'
+  })
+  document.getElementById('trail-modules').innerHTML=h
+}
+
+function toggleMod(el){
+  const items=el.nextElementSibling
+  items.classList.toggle('open')
+  el.querySelector('.mc').classList.toggle('open')
+}
+
+async function markContent(id,tipo){
+  if(tipo==='avaliacao') return
+  const{error}=await sb.from('progresso_conteudos').upsert({conteudo_id:id,profile_id:ME.id,concluido:true,concluido_em:new Date().toISOString()},{onConflict:'conteudo_id,profile_id'})
+  if(!error){
+    const btn=event.currentTarget.querySelector('.mchk')
+    btn.classList.add('done');btn.textContent='✓'
+  }
+}
+
+// ══════════════════════════════════════════
+// MANAGE — TABS
+// ══════════════════════════════════════════
+function mgTab(tab){
+  document.querySelectorAll('.mg-pane').forEach(p=>p.style.display='none')
+  document.getElementById('mg-'+tab).style.display='block'
+  document.querySelectorAll('#mg-tabs .tab').forEach(t=>t.classList.remove('on'))
+  event.currentTarget.classList.add('on')
+  if(tab==='trilhas') loadMgTrilhas()
+  if(tab==='pessoas') loadMgPessoas()
+  if(tab==='matriz') loadMgMatriz()
+  if(tab==='geral') loadMgGeral()
+}
+
+async function loadManage(){
+  loadMgTrilhas()
+}
+
+// ══════════════════════════════════════════
+// MANAGE — TRILHAS (CRUD)
+// ══════════════════════════════════════════
+async function loadMgTrilhas(){
+  const el=document.getElementById('mg-trilhas')
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  const{data}=await sb.from('trilhas').select('*,modulos(id,titulo,ordem,conteudos(id,titulo,tipo,ordem,subtipo),avaliacoes(id,titulo,ordem))').order('categoria').order('titulo')
+  ALL_TRAILS=data||[]
+  let h=`<div style="padding:12px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:13px;font-weight:600">${ALL_TRAILS.length} trilhas</span>
+    <button class="btn btn-y btn-sm" onclick="openTrailForm()">+ Nova trilha</button>
+  </div>`
+  const cats=[...new Set(ALL_TRAILS.map(t=>t.categoria))]
+  cats.forEach(cat=>{
+    h+=`<div class="sec">${cat}</div>`
+    ALL_TRAILS.filter(t=>t.categoria===cat).forEach(t=>{
+      const mods=(t.modulos||[]).sort((a,b)=>a.ordem-b.ordem)
+      const totalC=mods.reduce((s,m)=>s+(m.conteudos?.length||0)+(m.avaliacoes?.length||0),0)
+      h+=`<div class="li" onclick="openTrailEditor('${t.id}')">
+        <div class="avatar">${t.titulo.substring(0,2).toUpperCase()}</div>
+        <div class="info"><div class="n">${t.titulo}</div><div class="s">${mods.length} módulos · ${totalC} conteúdos · ${t.xp_conclusao} XP</div></div>
+        <div class="act">editar →</div>
+      </div>`
+    })
+  })
+  el.innerHTML=h
+}
+
+function openTrailForm(trail){
+  const t=trail||{titulo:'',descricao:'',categoria:'Operacional',obrigatoria:true,prazo_dias:30,nota_minima:70,xp_conclusao:200,ativo:true}
+  const isEdit=!!trail?.id
+  let h=`<h3>${isEdit?'Editar':'Nova'} trilha <button class="close" onclick="closeModal()">&times;</button></h3>
+    <div class="fgroup"><label>Título</label><input id="tf-titulo" value="${t.titulo}"></div>
+    <div class="fgroup"><label>Descrição</label><textarea id="tf-desc">${t.descricao||''}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fgroup"><label>Categoria</label><select id="tf-cat"><option ${t.categoria==='Operacional'?'selected':''}>Operacional</option><option ${t.categoria==='Qualidade'?'selected':''}>Qualidade</option><option ${t.categoria==='BPF'?'selected':''}>BPF</option><option ${t.categoria==='Segurança'?'selected':''}>Segurança</option><option ${t.categoria==='Onboarding'?'selected':''}>Onboarding</option></select></div>
+      <div class="fgroup"><label>Prazo (dias)</label><input type="number" id="tf-prazo" value="${t.prazo_dias||30}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fgroup"><label>Nota mínima (%)</label><input type="number" id="tf-nota" value="${t.nota_minima||70}"></div>
+      <div class="fgroup"><label>XP conclusão</label><input type="number" id="tf-xp" value="${t.xp_conclusao||200}"></div>
+    </div>
+    <div class="fgroup"><label><input type="checkbox" id="tf-obr" ${t.obrigatoria?'checked':''}> Obrigatória</label></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-y btn-block" onclick="saveTrail('${t.id||''}')">${isEdit?'Salvar':'Criar'}</button>
+      ${isEdit?`<button class="btn btn-r btn-sm" onclick="deleteTrail('${t.id}')">Excluir</button>`:''}
+    </div>`
+  showModal(h)
+}
+
+async function saveTrail(id){
+  const obj={
+    titulo:document.getElementById('tf-titulo').value,
+    descricao:document.getElementById('tf-desc').value,
+    categoria:document.getElementById('tf-cat').value,
+    prazo_dias:parseInt(document.getElementById('tf-prazo').value)||30,
+    nota_minima:parseFloat(document.getElementById('tf-nota').value)||70,
+    xp_conclusao:parseInt(document.getElementById('tf-xp').value)||200,
+    obrigatoria:document.getElementById('tf-obr').checked,
+    ativo:true
+  }
+  if(id){await sb.from('trilhas').update(obj).eq('id',id)}
+  else{await sb.from('trilhas').insert(obj)}
+  closeModal();loadMgTrilhas()
+}
+
+async function deleteTrail(id){
+  if(!confirm('Excluir esta trilha e todos seus módulos/conteúdos?')) return
+  await sb.from('trilhas').delete().eq('id',id)
+  closeModal();loadMgTrilhas()
+}
+
+async function openTrailEditor(id){
+  const{data:t}=await sb.from('trilhas').select('*,modulos(id,titulo,ordem,ativo,conteudos(id,titulo,tipo,duracao_min,url,ordem,xp_conclusao,obrigatorio,subtipo),avaliacoes(id,titulo,nota_minima,xp_aprovacao,ordem))').eq('id',id).single()
+  if(!t) return
+  const mods=(t.modulos||[]).sort((a,b)=>a.ordem-b.ordem)
+  let h=`<h3>${t.titulo} <button class="close" onclick="closeModal()">&times;</button></h3>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-o btn-sm" onclick="openTrailForm(${JSON.stringify(t).replace(/"/g,'&quot;')})">Editar info</button>
+      <button class="btn btn-y btn-sm" onclick="openModForm('${t.id}')">+ Módulo</button>
+    </div>`
+  mods.forEach((m,mi)=>{
+    const items=[...(m.conteudos||[]).sort((a,b)=>a.ordem-b.ordem),...(m.avaliacoes||[]).map(a=>({...a,tipo:'avaliacao'})).sort((a,b)=>a.ordem-b.ordem)]
+    h+=`<div style="background:#faf8f3;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:600">${mi+1}. ${m.titulo}</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-o btn-sm" style="padding:3px 8px;font-size:9px" onclick="openModForm('${t.id}',${JSON.stringify(m).replace(/"/g,'&quot;')})">editar</button>
+          <button class="btn btn-o btn-sm" style="padding:3px 8px;font-size:9px" onclick="openContentForm('${m.id}')">+ conteúdo</button>
+        </div>
+      </div>`
+    items.forEach(it=>{
+      const ico=TIPO_ICO[it.tipo]||'📝'
+      h+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;border-bottom:1px solid #eee">
+        <span>${ico}</span>
+        <span style="flex:1">${it.titulo}</span>
+        <span style="color:var(--txs);font-size:9px">+${it.xp_conclusao||it.xp_aprovacao||0} XP</span>
+        <span style="cursor:pointer;color:var(--r);font-size:10px" onclick="deleteContent('${it.id}','${it.tipo}','${t.id}')">✕</span>
+      </div>`
+    })
+    h+='</div>'
+  })
+  showModal(h)
+}
+
+function openModForm(trilhaId,mod){
+  const m=mod||{titulo:'',ordem:1}
+  const isEdit=!!mod?.id
+  let h=`<h3>${isEdit?'Editar':'Novo'} módulo <button class="close" onclick="closeModal()">&times;</button></h3>
+    <div class="fgroup"><label>Título</label><input id="mf-titulo" value="${m.titulo}"></div>
+    <div class="fgroup"><label>Ordem</label><input type="number" id="mf-ordem" value="${m.ordem||1}"></div>
+    <button class="btn btn-y btn-block" onclick="saveMod('${trilhaId}','${m.id||''}')">${isEdit?'Salvar':'Criar'}</button>`
+  showModal(h)
+}
+
+async function saveMod(trilhaId,modId){
+  const obj={trilha_id:trilhaId,titulo:document.getElementById('mf-titulo').value,ordem:parseInt(document.getElementById('mf-ordem').value)||1,ativo:true}
+  if(modId) await sb.from('modulos').update(obj).eq('id',modId)
+  else await sb.from('modulos').insert(obj)
+  closeModal();openTrailEditor(trilhaId)
+}
+
+function openContentForm(moduloId){
+  let h=`<h3>Novo conteúdo <button class="close" onclick="closeModal()">&times;</button></h3>
+    <div class="fgroup"><label>Título</label><input id="cf-titulo"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fgroup"><label>Tipo</label><select id="cf-tipo"><option value="video">Vídeo</option><option value="texto">Leitura</option><option value="audio">Áudio</option><option value="imagem">Imagem</option></select></div>
+      <div class="fgroup"><label>Subtipo</label><select id="cf-sub"><option value="">Nenhum</option><option value="atividade_supervisionada">Atividade supervisionada</option><option value="validacao_supervisor">Validação supervisor</option><option value="validacao_facilitador">Validação facilitador</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fgroup"><label>Duração (min)</label><input type="number" id="cf-min" value="10"></div>
+      <div class="fgroup"><label>XP</label><input type="number" id="cf-xp" value="20"></div>
+    </div>
+    <div class="fgroup"><label>URL do conteúdo</label><input id="cf-url" placeholder="https://..."></div>
+    <div class="fgroup"><label>Ordem</label><input type="number" id="cf-ordem" value="1"></div>
+    <div class="fgroup"><label><input type="checkbox" id="cf-obr" checked> Obrigatório</label></div>
+    <button class="btn btn-y btn-block" onclick="saveContent('${moduloId}')">Adicionar</button>`
+  showModal(h)
+}
+
+async function saveContent(moduloId){
+  const obj={
+    modulo_id:moduloId,
+    titulo:document.getElementById('cf-titulo').value,
+    tipo:document.getElementById('cf-tipo').value,
+    subtipo:document.getElementById('cf-sub').value||null,
+    duracao_min:parseInt(document.getElementById('cf-min').value)||0,
+    xp_conclusao:parseInt(document.getElementById('cf-xp').value)||20,
+    url:document.getElementById('cf-url').value||null,
+    ordem:parseInt(document.getElementById('cf-ordem').value)||1,
+    obrigatorio:document.getElementById('cf-obr').checked
+  }
+  await sb.from('conteudos').insert(obj)
+  closeModal()
+}
+
+async function deleteContent(id,tipo,trilhaId){
+  if(!confirm('Excluir este conteúdo?')) return
+  if(tipo==='avaliacao') await sb.from('avaliacoes').delete().eq('id',id)
+  else await sb.from('conteudos').delete().eq('id',id)
+  openTrailEditor(trilhaId)
+}
+
+// ══════════════════════════════════════════
+// MANAGE — PESSOAS (CRUD)
+// ══════════════════════════════════════════
+async function loadMgPessoas(){
+  const el=document.getElementById('mg-pessoas')
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  let data=null
+  const{data:dj,error:ej}=await sb.from('profiles').select('*,areas(nome),cargos(nome)').order('nome')
+  if(!ej) data=dj
+  else{const{data:ds}=await sb.from('profiles').select('*').order('nome');data=ds}
+  ALL_PEOPLE=data||[]
+  let h=`<div style="padding:12px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:13px;font-weight:600">${ALL_PEOPLE.length} colaboradores</span>
+    <button class="btn btn-y btn-sm" onclick="openPersonForm()">+ Novo</button>
+  </div>`
+  ALL_PEOPLE.forEach(p=>{
+    const ini=(p.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+    h+=`<div class="li" onclick="openPersonForm(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="avatar">${ini}</div>
+      <div class="info"><div class="n">${p.nome}</div><div class="s">${p.cargos?.nome||'—'} · ${p.areas?.nome||'—'} · ${p.role}</div></div>
+      <div class="act">editar →</div>
+    </div>`
+  })
+  el.innerHTML=h
+}
+
+async function openPersonForm(person){
+  const p=person||{nome:'',matricula:'',role:'colaborador',turno:'A'}
+  const isEdit=!!p.id
+  const{data:areas}=await sb.from('areas').select('id,nome')
+  const{data:cargos}=await sb.from('cargos').select('id,nome')
+  let h=`<h3>${isEdit?'Editar':'Novo'} colaborador <button class="close" onclick="closeModal()">&times;</button></h3>
+    <div class="fgroup"><label>Nome</label><input id="pf-nome" value="${p.nome}"></div>
+    <div class="fgroup"><label>Matrícula</label><input id="pf-mat" value="${p.matricula||''}"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fgroup"><label>Perfil</label><select id="pf-role"><option value="colaborador" ${p.role==='colaborador'?'selected':''}>Colaborador</option><option value="gestor" ${p.role==='gestor'?'selected':''}>Gestor</option><option value="admin" ${p.role==='admin'?'selected':''}>Admin</option></select></div>
+      <div class="fgroup"><label>Turno</label><select id="pf-turno"><option ${p.turno==='A'?'selected':''}>A</option><option ${p.turno==='B'?'selected':''}>B</option><option ${p.turno==='C'?'selected':''}>C</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fgroup"><label>Área</label><select id="pf-area"><option value="">—</option>${(areas||[]).map(a=>`<option value="${a.id}" ${p.area_id===a.id?'selected':''}>${a.nome}</option>`).join('')}</select></div>
+      <div class="fgroup"><label>Cargo</label><select id="pf-cargo"><option value="">—</option>${(cargos||[]).map(c=>`<option value="${c.id}" ${p.cargo_id===c.id?'selected':''}>${c.nome}</option>`).join('')}</select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-y btn-block" onclick="savePerson('${p.id||''}')">${isEdit?'Salvar':'Criar'}</button>
+      ${isEdit?`<button class="btn btn-r btn-sm" onclick="deletePerson('${p.id}')">Excluir</button>`:''}
+    </div>`
+  showModal(h)
+}
+
+async function savePerson(id){
+  const obj={
+    nome:document.getElementById('pf-nome').value,
+    matricula:document.getElementById('pf-mat').value,
+    role:document.getElementById('pf-role').value,
+    turno:document.getElementById('pf-turno').value,
+    area_id:document.getElementById('pf-area').value||null,
+    cargo_id:document.getElementById('pf-cargo').value||null
+  }
+  if(id) await sb.from('profiles').update(obj).eq('id',id)
+  else await sb.from('profiles').insert(obj)
+  closeModal();loadMgPessoas()
+}
+
+async function deletePerson(id){
+  if(!confirm('Excluir este colaborador?')) return
+  await sb.from('profiles').update({ativo:false}).eq('id',id)
+  closeModal();loadMgPessoas()
+}
+
+// ══════════════════════════════════════════
+// MANAGE — MATRIZ INDIVIDUAL
+// ══════════════════════════════════════════
+async function loadMgMatriz(){
+  const el=document.getElementById('mg-matriz')
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  let people=null
+  const{data:pj,error:ej}=await sb.from('profiles').select('id,nome,cargos(nome)').order('nome')
+  if(!ej) people=pj
+  else{const{data:ps}=await sb.from('profiles').select('id,nome').order('nome');people=ps}
+  const{data:comp}=await sb.from('competencias').select('*').order('categoria,nome')
+  ALL_COMP=comp||[]
+  let h=`<div style="padding:12px"><div class="fgroup"><label>Selecione o colaborador</label><select id="mx-person" onchange="showMatriz()"><option value="">—</option>`
+  ;(people||[]).forEach(p=>h+=`<option value="${p.id}">${p.nome} — ${p.cargos?.nome||''}</option>`)
+  h+=`</select></div></div><div id="mx-view"></div>`
+  el.innerHTML=h
+}
+
+async function showMatriz(){
+  const pid=document.getElementById('mx-person').value
+  const el=document.getElementById('mx-view')
+  if(!pid){el.innerHTML='';return}
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  const{data:mc}=await sb.from('matriz_competencias').select('*,competencias(nome,categoria)').eq('profile_id',pid)
+  const matrix=mc||[]
+  const cats=[...new Set(ALL_COMP.map(c=>c.categoria))]
+  let h='<div style="padding:0 12px">'
+  let totalGap=0
+  cats.forEach(cat=>{
+    h+=`<div class="sec">${cat}</div>`
+    ALL_COMP.filter(c=>c.categoria===cat).forEach(comp=>{
+      const m=matrix.find(x=>x.competencia_id===comp.id)
+      const atual=m?.nivel_atual||0
+      const desejado=m?.nivel_desejado||0
+      const gap=Math.max(0,desejado-atual)
+      totalGap+=gap
+      h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0ede5">
+        <span style="font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${comp.nome}</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <select style="width:50px;font-size:10px;padding:2px 4px" onchange="updateMatriz('${pid}','${comp.id}','nivel_atual',this.value)">
+            ${[0,1,2,3,4].map(n=>`<option value="${n}" ${atual===n?'selected':''}>${n}</option>`).join('')}
+          </select>
+          <span style="font-size:10px;color:var(--txs)">→</span>
+          <select style="width:50px;font-size:10px;padding:2px 4px" onchange="updateMatriz('${pid}','${comp.id}','nivel_desejado',this.value)">
+            ${[0,1,2,3,4].map(n=>`<option value="${n}" ${desejado===n?'selected':''}>${n}</option>`).join('')}
+          </select>
+          ${gap>0?`<span class="gap">-${gap}</span>`:gap===0&&atual>0?'<span style="color:var(--g);font-size:10px">✓</span>':''}
+        </div>
+      </div>`
+    })
+  })
+  h+=`<div style="margin-top:16px;padding:12px;background:#faf8f3;border-radius:8px;font-size:12px">
+    <strong>Gap total:</strong> ${totalGap} | <strong>Legenda:</strong> 0=Não conhece · 1=Conhece · 2=Aplica · 3=Aplica c/ autonomia · 4=Ensina
+  </div></div>`
+  el.innerHTML=h
+}
+
+async function updateMatriz(profileId,compId,field,value){
+  const{data:existing}=await sb.from('matriz_competencias').select('id').eq('profile_id',profileId).eq('competencia_id',compId).single()
+  if(existing){
+    await sb.from('matriz_competencias').update({[field]:parseInt(value)}).eq('id',existing.id)
+  }else{
+    const obj={profile_id:profileId,competencia_id:compId,nivel_atual:0,nivel_desejado:0,[field]:parseInt(value)}
+    await sb.from('matriz_competencias').insert(obj)
+  }
+}
+
+// ══════════════════════════════════════════
+// MANAGE — VISÃO GERAL
+// ══════════════════════════════════════════
+async function loadMgGeral(){
+  const el=document.getElementById('mg-geral')
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  let people=null
+  const{data:pj,error:ej}=await sb.from('profiles').select('id,nome,cargos(nome),areas(nome)').order('nome')
+  if(!ej) people=pj
+  else{const{data:ps}=await sb.from('profiles').select('id,nome').order('nome');people=ps}
+  const{data:comp}=await sb.from('competencias').select('*').order('categoria,nome')
+  const{data:allMc}=await sb.from('matriz_competencias').select('*')
+  ALL_COMP=comp||[]
+  const ppl=people||[]
+  const mc=allMc||[]
+
+  let totalGaps=0,critCount=0
+  ppl.forEach(p=>{
+    let hasCrit=false
+    ALL_COMP.forEach(c=>{
+      const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id)
+      const gap=(m?.nivel_desejado||0)-(m?.nivel_atual||0)
+      if(gap>0) totalGaps+=gap
+      if(gap>=2) hasCrit=true
+    })
+    if(hasCrit) critCount++
+  })
+
+  let h=`<div class="kpi-row" style="margin-top:12px">
+    <div class="kpi"><div class="kv">${ppl.length}</div><div class="kl">Colaboradores</div></div>
+    <div class="kpi"><div class="kv">${ALL_COMP.length}</div><div class="kl">Competências</div></div>
+    <div class="kpi"><div class="kv">${totalGaps}</div><div class="kl">Gaps totais</div></div>
+    <div class="kpi"><div class="kv" style="color:var(--r)">${critCount}</div><div class="kl">Gap crítico</div></div>
+  </div>`
+
+  h+=`<div style="overflow-x:auto;padding:0 12px"><table class="tbl"><thead><tr><th>Colaborador</th>`
+  ALL_COMP.forEach(c=>h+=`<th style="text-align:center;font-size:8px;max-width:40px;word-break:break-all">${c.nome.split(' ').slice(0,2).join(' ')}</th>`)
+  h+=`<th style="text-align:center">Gap</th></tr></thead><tbody>`
+  ppl.forEach(p=>{
+    let gaps=0
+    h+=`<tr><td style="white-space:nowrap"><div style="font-size:11px;font-weight:600">${p.nome}</div><div style="font-size:9px;color:var(--txs)">${p.cargos?.nome||'—'}</div></td>`
+    ALL_COMP.forEach(c=>{
+      const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id)
+      const lvl=m?.nivel_atual||0
+      const tgt=m?.nivel_desejado||0
+      const gap=Math.max(0,tgt-lvl)
+      gaps+=gap
+      h+=`<td style="text-align:center"><span class="lvl l${lvl}">${lvl}</span>${gap>=2?'<br><span class="gap">-'+gap+'</span>':''}</td>`
+    })
+    h+=`<td style="text-align:center;font-weight:600;${gaps>5?'color:var(--r)':''}">${gaps}</td></tr>`
+  })
+  h+=`</tbody></table></div>`
+  h+=`<div style="padding:12px;font-size:10px;color:var(--txs)">0=Não conhece · 1=Conhece · 2=Aplica · 3=Aplica c/ autonomia · 4=Ensina | <span class="gap">-N</span> = gap crítico (≥2 níveis)</div>`
+  el.innerHTML=h
+}
+
+// ══════════════════════════════════════════
+// PERFIL
+// ══════════════════════════════════════════
+async function loadPerfil(){
+  const el=document.getElementById('perfil-content')
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>'
+  const{data:mc}=await sb.from('matriz_competencias').select('*,competencias(nome,categoria)').eq('profile_id',ME.id)
+  const{data:score}=await sb.from('user_scores').select('*').eq('profile_id',ME.id).single()
+  const matrix=mc||[]
+  let h=`<div style="padding:12px">`
+  if(score){
+    h+=`<div class="kpi-row"><div class="kpi"><div class="kv">${score.xp_total||0}</div><div class="kl">XP total</div></div>
+      <div class="kpi"><div class="kv">${score.nivel||1}</div><div class="kl">Nível</div></div>
+      <div class="kpi"><div class="kv">${score.trilhas_concluidas||0}</div><div class="kl">Trilhas</div></div></div>`
+  }
+  h+=`<div class="sec">Minha matriz de competências</div>`
+  const cats=[...new Set(matrix.map(m=>m.competencias?.categoria).filter(Boolean))]
+  if(cats.length===0) h+='<div class="empty"><div class="ei">📊</div><p>Nenhuma competência atribuída ainda</p></div>'
+  cats.forEach(cat=>{
+    h+=`<div style="font-size:11px;font-weight:600;color:var(--txs);margin:12px 0 6px;text-transform:uppercase">${cat}</div>`
+    matrix.filter(m=>m.competencias?.categoria===cat).forEach(m=>{
+      const pct=Math.round((m.nivel_atual/4)*100)
+      const tpct=Math.round((m.nivel_desejado/4)*100)
+      const gap=m.nivel_desejado-m.nivel_atual
+      h+=`<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+          <span>${m.competencias.nome}</span>
+          <span>${m.nivel_atual}/4 ${gap>0?'<span class=gap>gap '+gap+'</span>':''}</span>
+        </div>
+        <div style="height:6px;background:#eee;border-radius:3px;position:relative;overflow:visible">
+          <div style="height:100%;width:${pct}%;background:${gap>1?'var(--r)':gap>0?'var(--y)':'var(--g)'};border-radius:3px"></div>
+          <div style="position:absolute;top:-1px;left:${tpct}%;width:2px;height:8px;background:var(--dk);border-radius:1px"></div>
+        </div>
+      </div>`
+    })
+  })
+  h+='</div>'
+  el.innerHTML=h
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function showModal(html){
+  document.getElementById('modal-body').innerHTML=html
+  document.getElementById('modal-bg').classList.add('on')
+}
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-bg')&&!e.target.classList.contains('close')) return
+  document.getElementById('modal-bg').classList.remove('on')
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+initApp()
+</script>
+</body>
+</html>
