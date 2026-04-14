@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Odara Academy</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --y:#FFB81D;--r:#EE2737;--cr:#FFF8EA;--dk:#0C0C0C;--gr:#565555;
+  --ys:#FFF3D0;--rs:#FDECEA;--gs:#E4F5EA;--bs:#E4EEFF;
+  --bg:#F2F0EB;--card:#fff;--border:#E8E3DA;
+}
+html,body{height:100%;overflow:hidden;background:#111;font-family:'Segoe UI',system-ui,sans-serif}
+#app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;position:relative}
+
+/* ── SCREENS ── */
+.sc{display:none;flex-direction:column;flex:1;overflow:hidden}
+.sc.on{display:flex}
+.scroll{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:72px}
+.scroll::-webkit-scrollbar{display:none}
+
+/* ── NAV ── */
+.bnav{position:absolute;bottom:0;left:0;right:0;background:var(--dk);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 2px 7px;border:none;background:none;cursor:pointer;color:#555;transition:color .2s;font-family:inherit}
+.nb.on{color:var(--y)}
+.nb svg{width:20px;height:20px}
+.nb span{font-size:9px;font-weight:700;letter-spacing:.3px}
+
+/* ── HEADERS ── */
+.hdk{background:var(--dk);padding:14px 16px 18px;flex-shrink:0}
+.hrd{background:var(--r);padding:14px 16px 18px;flex-shrink:0}
+.hcr{background:var(--cr);padding:14px 16px 16px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.htitle{font-size:22px;font-weight:900;color:var(--y);letter-spacing:.3px}
+.hsub{font-size:11px;color:#777;margin-top:3px}
+.htitle-w{font-size:20px;font-weight:900;color:#fff;letter-spacing:.3px}
+.hsub-w{font-size:11px;color:rgba(255,255,255,.65);margin-top:3px}
+
+/* ── SECTIONS ── */
+.sec{padding:14px 14px 6px;display:flex;align-items:center;justify-content:space-between}
+.sec h3{font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.8px}
+.sec a{font-size:11px;color:var(--y);font-weight:700;cursor:pointer;text-decoration:none}
+.pad{padding:0 12px;display:flex;flex-direction:column;gap:7px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .13s,border-color .2s}
+.card:active{transform:scale(.98)}
+.card:hover{border-color:var(--y)}
+.ci{padding:13px 13px 11px}
+.ctop{display:flex;align-items:flex-start;gap:10px}
+.cico{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.cico.r{background:var(--rs)} .cico.y{background:var(--ys)} .cico.g{background:var(--gs)} .cico.b{background:var(--bs)}
+.cmeta{flex:1}
+.ctit{font-size:13px;font-weight:700;color:var(--dk);line-height:1.3}
+.csub{font-size:11px;color:#999;margin-top:3px}
+.cpill{font-size:9px;font-weight:800;padding:2px 8px;border-radius:20px;margin-top:5px;display:inline-block;letter-spacing:.2px}
+.purge{background:var(--rs);color:var(--r)} .pnew{background:var(--ys);color:#9a6900} .pdone{background:var(--gs);color:#1a5a2a} .popt{background:var(--bs);color:#2a4aaa}
+.cbar{display:flex;align-items:center;gap:7px;margin-top:9px}
+.btrack{flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.bfill{height:100%;border-radius:2px;background:var(--y)}
+.bfill.r{background:var(--r)} .bfill.g{background:#1a7a35}
+.bpct{font-size:11px;font-weight:700;color:#999;width:28px;text-align:right}
+
+/* ── XP / PROFILE HEADER ── */
+.phome{display:flex;align-items:flex-start;justify-content:space-between}
+.pgreet{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.pname{font-size:22px;font-weight:900;color:var(--y);line-height:1.1}
+.pav{width:42px;height:42px;border-radius:50%;background:var(--y);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:var(--dk);flex-shrink:0}
+.xrow{display:flex;align-items:center;gap:8px;margin-top:12px}
+.xlvl{background:var(--y);color:var(--dk);font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.xtrack{flex:1;height:5px;background:#1e1e1e;border-radius:3px;overflow:hidden}
+.xfill{height:100%;border-radius:3px;background:var(--y)}
+.xtxt{font-size:10px;color:#666;white-space:nowrap;font-weight:700}
+.streak{display:flex;align-items:center;gap:5px;background:#1a1a1a;border-radius:20px;padding:3px 10px;margin-top:8px;width:fit-content}
+.streak span{font-size:11px;color:var(--y);font-weight:700}
+
+/* ── NOTIF BADGE ── */
+.notif-dot{position:absolute;top:5px;right:6px;width:8px;height:8px;background:var(--r);border-radius:50%;border:2px solid var(--dk)}
+
+/* ── RANKING ── */
+.rrow{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:9px}
+.rrow.me{border-color:var(--y);background:#fffbf0}
+.rpos{font-size:15px;font-weight:900;color:var(--y);width:22px}
+.rname{font-size:13px;font-weight:600;color:var(--dk);flex:1}
+.rpts{font-size:12px;font-weight:700;color:#999}
+.rpts b{color:var(--y)}
+
+/* ── TRILHA DETALHE ── */
+.tprog{display:flex;gap:8px;margin-top:12px}
+.tpbox{flex:1;background:rgba(255,255,255,.13);border-radius:10px;padding:9px;text-align:center}
+.tpbox .v{font-size:20px;font-weight:900;color:#fff}
+.tpbox .l{font-size:10px;color:rgba(255,255,255,.65);font-weight:700;text-transform:uppercase;letter-spacing:.2px;margin-top:1px}
+.bigbar{margin:12px 0 2px;height:7px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden}
+.bigfill{height:100%;border-radius:4px;background:#fff}
+.mblock{margin:0 12px 12px}
+.mlabel{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.mnum{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0}
+.mnum.g{background:#1a7a35} .mnum.a{background:var(--r)} .mnum.l{background:#ccc}
+.mtit{font-size:13px;font-weight:700;color:var(--dk)}
+.mst{font-size:10px;color:#aaa;font-weight:700;margin-left:auto}
+.citem{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:10px 11px;display:flex;align-items:center;gap:9px;margin-bottom:5px;cursor:pointer;transition:border-color .15s}
+.citem:hover{border-color:var(--y)} .citem.lk{opacity:.42;cursor:not-allowed}
+.cico2{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.cinfo{flex:1}
+.cname{font-size:13px;font-weight:600;color:var(--dk);line-height:1.3}
+.cdur{font-size:11px;color:#999;margin-top:2px}
+.cchk{width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px}
+.ck-ok{background:#1a7a35;color:#fff} .ck-td{border:1.5px solid #ddd} .ck-lk{background:var(--bg);color:#ccc;font-size:9px}
+
+/* ── QUIZ ── */
+.qhdr{background:var(--dk);padding:13px 15px 17px;flex-shrink:0}
+.qdots{display:flex;gap:4px;margin-top:11px}
+.qdot{height:4px;border-radius:2px;flex:1;background:#222;transition:background .25s}
+.qdot.done{background:var(--y)} .qdot.act{background:var(--r)}
+.qbody{padding:15px}
+.qnum{font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
+.qtxt{font-size:15px;font-weight:700;color:var(--dk);line-height:1.5;margin-bottom:16px}
+.qopt{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:9px;margin-bottom:7px;cursor:pointer;transition:all .13s}
+.qopt:hover{border-color:var(--y)}
+.qopt.sel{border-color:var(--y);background:var(--ys)}
+.qopt.ok{border-color:#1a7a35;background:var(--gs)}
+.qopt.no{border-color:var(--r);background:var(--rs)}
+.qltr{width:27px;height:27px;border-radius:50%;border:1.5px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#999;flex-shrink:0;transition:all .13s}
+.qopt.sel .qltr{border-color:var(--y);background:var(--y);color:var(--dk)}
+.qopt.ok .qltr{border-color:#1a7a35;background:#1a7a35;color:#fff}
+.qopt.no .qltr{border-color:var(--r);background:var(--r);color:#fff}
+.qotxt{font-size:13px;font-weight:500;color:var(--dk);line-height:1.4}
+.qfb{border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:12px;font-weight:500;line-height:1.4;display:none}
+.qfb.show{display:block} .qfb.ok{background:var(--gs);color:#1a4a1a} .qfb.no{background:var(--rs);color:#7a0a0a}
+.qresult{padding:24px 15px;text-align:center}
+.qrico{font-size:60px;margin-bottom:14px}
+.qrtit{font-size:26px;font-weight:900;color:var(--dk)}
+.qrscore{font-size:46px;font-weight:900;color:var(--y);line-height:1}
+.qrsub{font-size:13px;color:#999;margin-top:7px;font-weight:500}
+.qrbadge{background:var(--ys);border:1.5px solid var(--y);border-radius:13px;padding:13px;margin:14px 0;display:flex;align-items:center;gap:11px;text-align:left}
+.qrxp{font-size:17px;font-weight:900;color:#1a7a35;margin:6px 0}
+
+/* ── BUTTONS ── */
+.btn{width:100%;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--y);color:var(--dk);border:none}
+.btn.secondary{background:var(--card);color:var(--dk);border:1.5px solid var(--border);margin-top:7px}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn.danger{background:var(--rs);color:var(--r);border:1.5px solid #f7c1c1}
+.btn.sm{padding:8px 14px;font-size:12px;width:auto;border-radius:8px}
+
+/* ── DASHBOARD ── */
+.tabs{display:flex;background:var(--card);margin:11px 11px 0;border-radius:11px;border:1px solid var(--border);overflow:hidden}
+.tab{flex:1;padding:9px 3px;border:none;background:none;cursor:pointer;font-size:11px;font-weight:700;color:#999;font-family:inherit;transition:all .2s}
+.tab.on{background:var(--y);color:var(--dk)}
+.tpanel{display:none;padding:11px}
+.tpanel.on{display:block}
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.kcard{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:11px}
+.kval{font-size:26px;font-weight:900;color:var(--y);line-height:1}
+.kval.r{color:var(--r)} .kval.g{color:#1a7a35}
+.klbl{font-size:10px;color:#999;font-weight:700;margin-top:3px;text-transform:uppercase;letter-spacing:.2px}
+.acard{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:11px;margin-bottom:7px}
+.atop{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.aname{font-size:13px;font-weight:700;color:var(--dk)}
+.apct{font-size:14px;font-weight:900;color:var(--y)}
+.apct.low{color:var(--r)}
+.mbar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.mfill{height:100%;border-radius:3px;background:var(--y)}
+.mfill.low{background:var(--r)}
+.abot{display:flex;gap:8px;margin-top:7px}
+.astat{font-size:11px;color:#999;font-weight:500}
+.astat b{color:var(--dk)}
+.alcard{background:var(--rs);border:1px solid #f7c1c1;border-radius:12px;padding:10px 11px;margin-bottom:7px;display:flex;gap:9px}
+.alico{font-size:15px;flex-shrink:0;margin-top:1px}
+.altxt{font-size:12px;color:#7a0a0a;font-weight:500;line-height:1.4}
+.altxt b{color:#5a0808}
+
+/* ── PEOPLE MANAGER ── */
+.prow{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pav2{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--dk);flex-shrink:0}
+.pinfo{flex:1}
+.pnm{font-size:13px;font-weight:700;color:var(--dk)}
+.pmeta{font-size:11px;color:#999;margin-top:1px}
+.pactions{display:flex;gap:5px}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:background .15s}
+.icon-btn:hover{background:var(--bg)}
+.icon-btn.del:hover{background:var(--rs)}
+
+/* ── APPROVAL QUEUE ── */
+.apcard{background:var(--card);border-radius:13px;border:1px solid var(--border);padding:13px;margin-bottom:8px}
+.apcard.urg{border-color:#f7c1c1;background:#fffafa}
+.aptop{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.apav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0}
+.apinfo{flex:1}
+.apname{font-size:13px;font-weight:700;color:var(--dk)}
+.apmeta{font-size:11px;color:#999;margin-top:2px;line-height:1.4}
+.niv-row{display:flex;align-items:center;gap:6px;margin:8px 0}
+.niv-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.niv-ant{background:var(--bg);color:#888}
+.niv-new{background:var(--ys);color:#9a6000}
+.ap-btns{display:flex;gap:6px;margin-top:10px}
+.ap-btns .btn{flex:1;padding:10px}
+.ap-btns .btn.ok{background:var(--gs);color:#1a5a1a;border:1.5px solid #b0dbb0}
+.ap-btns .btn.no{background:var(--rs);color:#8a1010;border:1.5px solid #f0b0b0}
+.days-badge{background:var(--rs);color:var(--r);font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap}
+
+/* ── MATRIX ── */
+.mxcard{background:var(--card);border-radius:13px;border:1px solid var(--border);padding:13px;margin-bottom:8px}
+.mxcat{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#999;margin-bottom:8px}
+.mxrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bg)}
+.mxrow:last-child{border-bottom:none;padding-bottom:0}
+.mxname{font-size:13px;font-weight:600;color:var(--dk);flex:1;line-height:1.3}
+.mxfac{font-size:10px;color:#bbb;margin-top:2px}
+.niv-dots{display:flex;gap:3px}
+.ndot{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border);transition:all .15s}
+.ndot.fill{background:var(--y);border-color:var(--y)}
+.ndot.fill.des{background:transparent;border-color:var(--y)}
+.ndot.gap{border-color:var(--r)}
+.gap-pill{font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;white-space:nowrap}
+.gap-ok{background:var(--gs);color:#1a5a1a}
+.gap-1{background:var(--ys);color:#9a6000}
+.gap-2{background:#fff0e4;color:#b04000}
+.gap-3{background:var(--rs);color:#8a1010}
+.req-btn{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;border:1.5px solid var(--y);background:none;color:var(--y);cursor:pointer;white-space:nowrap}
+.req-btn:hover{background:var(--ys)}
+
+/* ── MODAL / SHEET ── */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:150;display:none;align-items:flex-end}
+.overlay.on{display:flex}
+.sheet{background:var(--bg);border-radius:18px 18px 0 0;width:100%;padding:15px;max-height:85vh;overflow-y:auto}
+.sheet::-webkit-scrollbar{display:none}
+.shandle{width:34px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 14px}
+.stit{font-size:17px;font-weight:900;color:var(--dk);margin-bottom:3px}
+.ssub{font-size:12px;color:#999;margin-bottom:14px}
+.vframe{width:100%;aspect-ratio:16/9;border-radius:12px;background:var(--dk);display:flex;align-items:center;justify-content:center;margin-bottom:13px;overflow:hidden}
+.vframe iframe{width:100%;height:100%;border:none}
+.vph{text-align:center;color:#555}
+.vph .vi{font-size:36px;margin-bottom:7px}
+.cbody{font-size:14px;color:#333;line-height:1.7}
+.cbody h3{font-size:15px;font-weight:700;color:var(--dk);margin:11px 0 5px}
+.cbody ul{padding-left:14px;margin-bottom:7px}
+.cbody li{margin-bottom:3px}
+.tip{background:var(--ys);border-radius:10px;padding:10px 12px;font-size:13px;color:#7a5000;font-weight:500;margin-top:11px}
+
+/* ── FORM ── */
+.fgroup{margin-bottom:12px}
+.flabel{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:block}
+.finput{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--dk);font-family:inherit;transition:border-color .15s;outline:none}
+.finput:focus{border-color:var(--y)}
+.fselect{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.frow{display:flex;gap:8px}
+.frow .fgroup{flex:1}
+
+/* ── TRAIL ADMIN ── */
+.tadmin-card{background:var(--card);border-radius:12px;border:1px solid var(--border);margin-bottom:8px;overflow:hidden}
+.tadmin-hdr{padding:11px 13px;display:flex;align-items:center;gap:9px}
+.tadmin-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.tadmin-info{flex:1}
+.tadmin-name{font-size:13px;font-weight:700;color:var(--dk)}
+.tadmin-meta{font-size:11px;color:#999;margin-top:1px}
+.tadmin-body{border-top:1px solid var(--bg);padding:10px 13px;display:flex;flex-direction:column;gap:6px}
+.add-btn{width:100%;background:var(--card);border:1.5px dashed var(--y);border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:var(--y);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s}
+.add-btn:hover{background:var(--ys)}
+
+/* ── FACILITADOR ── */
+.fac-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.fac-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0}
+.fac-info{flex:1}
+.fac-name{font-size:13px;font-weight:700;color:var(--dk)}
+.fac-comp{font-size:11px;color:#999;margin-top:1px}
+.fac-lvl{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--ys);color:#9a6000}
+
+/* ── TOAST ── */
+.toast{position:absolute;top:10px;left:10px;right:10px;background:var(--dk);color:var(--y);border-radius:12px;padding:11px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;z-index:200;transform:translateY(-90px);transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateY(0)}
+.tico{font-size:19px}
+
+/* ── NOTIF CARD ── */
+.ncard{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:11px 13px;display:flex;gap:10px;margin-bottom:6px}
+.ncard.unread{border-color:var(--y);background:#fffbf0}
+.nico{font-size:20px;flex-shrink:0}
+.ninfo .ntit{font-size:13px;font-weight:700;color:var(--dk)}
+.ninfo .nmsg{font-size:12px;color:#888;margin-top:3px;line-height:1.4}
+.ninfo .ntime{font-size:10px;color:#bbb;margin-top:4px;font-weight:600}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;flex:1;flex-direction:column;gap:10px;color:#999}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--y);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:32px 20px;color:#bbb}
+.empty .ei{font-size:40px;margin-bottom:10px}
+.empty p{font-size:13px;font-weight:500}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="toast" id="toast"><span class="tico" id="tico">🏅</span><span id="tmsg"></span></div>
+
+<!-- ══ HOME ══ -->
+<div class="sc on" id="sc-home">
+  <div class="hdk">
+    <div class="phome">
+      <div>
+        <div class="pgreet" id="h-turno">Carregando...</div>
+        <div class="pname" id="h-nome">–</div>
+      </div>
+      <div class="pav" id="h-av">–</div>
+    </div>
+    <div class="xrow">
+      <span class="xlvl" id="h-nivel">–</span>
+      <div class="xtrack"><div class="xfill" id="h-xpbar" style="width:0%"></div></div>
+      <span class="xtxt" id="h-xp">0 XP</span>
+    </div>
+    <div class="streak"><span id="h-streak">🔥 0 dias</span></div>
+  </div>
+  <div class="scroll" id="home-scroll">
+    <div class="loading" id="home-loading"><div class="spinner"></div><span>Carregando...</span></div>
+    <div id="home-content" style="display:none">
+      <!-- Aprovações pendentes (supervisor) -->
+      <div id="home-approvals" style="display:none">
+        <div class="sec"><h3>⏳ Aprovações pendentes</h3></div>
+        <div class="pad" id="home-approvals-list"></div>
+      </div>
+      <div class="sec"><h3>🚨 Obrigatório</h3><a onclick="goSc('trilhas')">ver tudo</a></div>
+      <div class="pad" id="home-urgentes"></div>
+      <div class="sec"><h3>📖 Continuar</h3></div>
+      <div class="pad" id="home-andamento"></div>
+      <div class="sec"><h3>🏆 Ranking da semana</h3><span style="font-size:11px;color:#999" id="h-area-label"></span></div>
+      <div class="pad" id="home-ranking"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRILHA DETALHE ══ -->
+<div class="sc" id="sc-trilha">
+  <div class="hrd" id="trilha-hdr">
+    <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;cursor:pointer" onclick="goSc('trilhas')">← Voltar</div>
+    <div class="htitle-w" id="trilha-titulo">–</div>
+    <div class="hsub-w" id="trilha-meta">–</div>
+    <div class="tprog">
+      <div class="tpbox"><div class="v" id="t-pct">0%</div><div class="l">Concluído</div></div>
+      <div class="tpbox"><div class="v" id="t-feitos">0</div><div class="l">Conteúdos</div></div>
+      <div class="tpbox"><div class="v" id="t-dias">–</div><div class="l">Prazo</div></div>
+    </div>
+    <div class="bigbar"><div class="bigfill" id="t-bigfill" style="width:0%"></div></div>
+  </div>
+  <div class="scroll" id="trilha-modulos"></div>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div class="sc" id="sc-quiz">
+  <div class="qhdr">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:11px;color:#666;font-weight:700" id="q-label">TESTE</span>
+      <span style="font-size:11px;color:#666;font-weight:700" id="q-counter">1 de 5</span>
+    </div>
+    <div style="font-size:16px;font-weight:700;color:#fff;margin-top:7px" id="q-modulo">–</div>
+    <div style="font-size:11px;color:#666;margin-top:3px" id="q-nota-min">Nota mínima: 70%</div>
+    <div class="qdots" id="q-dots"></div>
+  </div>
+  <div class="scroll">
+    <div id="quiz-q" class="qbody"></div>
+    <div id="quiz-result" class="qresult" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ TRILHAS (lista) ══ -->
+<div class="sc" id="sc-trilhas">
+  <div class="hdk">
+    <div class="htitle">Minhas Trilhas</div>
+    <div class="hsub" id="trilhas-sub">Carregando...</div>
+  </div>
+  <div class="scroll">
+    <div class="loading" id="trilhas-loading"><div class="spinner"></div><span>Carregando...</span></div>
+    <div id="trilhas-list" style="padding:10px 12px;display:flex;flex-direction:column;gap:7px;display:none"></div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD / GESTÃO ══ -->
+<div class="sc" id="sc-dash">
+  <div class="hdk">
+    <div class="htitle">Gestão</div>
+    <div class="hsub" id="dash-sub">Dashboard operacional</div>
+  </div>
+  <div class="tabs" id="dash-tabs">
+    <button class="tab on" onclick="switchTab('geral')">Geral</button>
+    <button class="tab" onclick="switchTab('pessoas')">Pessoas</button>
+    <button class="tab" onclick="switchTab('trilhas-adm')">Trilhas</button>
+    <button class="tab" onclick="switchTab('facilitadores')">Fac.</button>
+    <button class="tab" onclick="switchTab('alertas')">Alertas</button>
+  </div>
+  <div class="scroll" style="padding-top:4px">
+    <!-- GERAL -->
+    <div class="tpanel on" id="tab-geral">
+      <div class="kgrid" id="kpis"></div>
+      <div style="font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Por Área</div>
+      <div id="areas-list"></div>
+    </div>
+    <!-- PESSOAS -->
+    <div class="tpanel" id="tab-pessoas">
+      <button class="add-btn" onclick="openSheet('sheet-pessoa')">+ Novo colaborador</button>
+      <div style="height:8px"></div>
+      <div id="pessoas-list"></div>
+    </div>
+    <!-- TRILHAS ADM -->
+    <div class="tpanel" id="tab-trilhas-adm">
+      <button class="add-btn" onclick="openSheet('sheet-trilha')">+ Nova trilha</button>
+      <div style="height:8px"></div>
+      <div id="trilhas-adm-list"></div>
+    </div>
+    <!-- FACILITADORES -->
+    <div class="tpanel" id="tab-facilitadores">
+      <button class="add-btn" onclick="openSheet('sheet-facilitador')">+ Adicionar facilitador</button>
+      <div style="height:8px"></div>
+      <div id="facilitadores-list"></div>
+    </div>
+    <!-- ALERTAS -->
+    <div class="tpanel" id="tab-alertas">
+      <div id="alertas-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PERFIL / MATRIZ ══ -->
+<div class="sc" id="sc-perfil">
+  <div class="hdk">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="pav" id="p-av" style="width:54px;height:54px;font-size:19px">–</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:var(--y)" id="p-nome">–</div>
+        <div style="font-size:11px;color:#777;margin-top:2px" id="p-meta">–</div>
+        <span class="xlvl" id="p-nivel" style="margin-top:6px;display:inline-block">–</span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="loading" id="perfil-loading"><div class="spinner"></div><span>Carregando...</span></div>
+    <div id="perfil-content" style="display:none;padding:12px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px" id="p-stats"></div>
+      <div style="font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.6px;margin-bottom:9px">Matriz de Competências</div>
+      <div id="matriz-content"></div>
+      <div style="font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 9px">Histórico de Testes</div>
+      <div id="hist-testes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<div class="bnav">
+  <button class="nb on" id="nav-home" onclick="goSc('home')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Início</span>
+  </button>
+  <button class="nb" id="nav-trilhas" onclick="goSc('trilhas')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    <span>Trilhas</span>
+  </button>
+  <button class="nb" id="nav-dash" onclick="goSc('dash')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+    <span>Gestão</span>
+  </button>
+  <button class="nb" id="nav-perfil" onclick="goSc('perfil')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+    <span>Perfil</span>
+  </button>
+</div>
+
+<!-- ══ SHEET: CONTEÚDO ══ -->
+<div class="overlay" id="sheet-content" onclick="closeSheet('sheet-content')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="stit" id="sc-titulo">–</div>
+    <div class="ssub" id="sc-sub">–</div>
+    <div class="vframe" id="sc-video-wrap"><div class="vph"><div class="vi">▶️</div><p style="color:#aaa;font-size:13px">Vídeo YouTube<br>aqui em produção</p></div></div>
+    <div class="cbody" id="sc-body"></div>
+    <button class="btn primary" style="margin-top:14px" id="sc-btn" onclick="concluirConteudoAtual()">✓ Marcar como concluído · +10 XP</button>
+  </div>
+</div>
+
+<!-- ══ SHEET: SOLICITAR PROGRESSÃO ══ -->
+<div class="overlay" id="sheet-progressao" onclick="closeSheet('sheet-progressao')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="stit" id="prog-titulo">Solicitar progressão</div>
+    <div class="ssub" id="prog-sub">–</div>
+    <div class="fgroup">
+      <label class="flabel">Nível solicitado</label>
+      <select class="finput fselect" id="prog-nivel">
+        <option value="conhece">2 — Conhece</option>
+        <option value="aplica">3 — Aplica</option>
+        <option value="ensina">4 — Ensina</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Observação / Evidência</label>
+      <textarea class="finput" id="prog-obs" rows="3" placeholder="Descreva como você aplica esse conhecimento..."></textarea>
+    </div>
+    <div style="background:var(--ys);border-radius:10px;padding:10px 12px;font-size:12px;color:#7a5000;margin-bottom:14px">
+      ⚠️ Esta solicitação será enviada ao seu supervisor para aprovação.
+    </div>
+    <button class="btn primary" onclick="submeterProgressao()">Enviar solicitação</button>
+    <button class="btn secondary" onclick="closeSheet('sheet-progressao')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ SHEET: APROVAR/REJEITAR ══ -->
+<div class="overlay" id="sheet-aprovacao" onclick="closeSheet('sheet-aprovacao')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="stit">Validar progressão</div>
+    <div id="aprov-info" style="margin-bottom:14px"></div>
+    <div class="fgroup">
+      <label class="flabel">Observação (opcional)</label>
+      <textarea class="finput" id="aprov-obs" rows="3" placeholder="Justifique sua decisão..."></textarea>
+    </div>
+    <div class="ap-btns">
+      <button class="btn ok" onclick="decidirProgressao(true)">✓ Aprovar</button>
+      <button class="btn no" onclick="decidirProgressao(false)">✗ Rejeitar</button>
+    </div>
+    <button class="btn secondary" onclick="closeSheet('sheet-aprovacao')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ SHEET: NOVA PESSOA ══ -->
+<div class="overlay" id="sheet-pessoa" onclick="closeSheet('sheet-pessoa')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="stit">Novo colaborador</div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Nome completo</label><input class="finput" id="p-nome-i" placeholder="Nome Sobrenome"></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">E-mail</label><input class="finput" id="p-email-i" type="email" placeholder="email@odara.com.br"></div>
+      <div class="fgroup"><label class="flabel">Matrícula</label><input class="finput" id="p-mat-i" placeholder="OP001"></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup">
+        <label class="flabel">Perfil</label>
+        <select class="finput fselect" id="p-role-i">
+          <option value="colaborador">Colaborador</option>
+          <option value="gestor">Gestor</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Turno</label>
+        <select class="finput fselect" id="p-turno-i">
+          <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="Administrativo">Adm.</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Área</label><select class="finput fselect" id="p-area-i"></select></div>
+      <div class="fgroup"><label class="flabel">Cargo</label><select class="finput fselect" id="p-cargo-i"></select></div>
+    </div>
+    <button class="btn primary" onclick="salvarPessoa()">Salvar colaborador</button>
+    <button class="btn secondary" onclick="closeSheet('sheet-pessoa')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ SHEET: NOVA TRILHA ══ -->
+<div class="overlay" id="sheet-trilha" onclick="closeSheet('sheet-trilha')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="stit" id="trilha-form-tit">Nova trilha</div>
+    <div class="fgroup"><label class="flabel">Título</label><input class="finput" id="t-titulo-i" placeholder="Ex: BPF — Boas Práticas de Fabricação"></div>
+    <div class="fgroup"><label class="flabel">Descrição</label><textarea class="finput" id="t-desc-i" rows="2" placeholder="Objetivo da trilha..."></textarea></div>
+    <div class="frow">
+      <div class="fgroup">
+        <label class="flabel">Categoria</label>
+        <select class="finput fselect" id="t-cat-i">
+          <option>BPF</option><option>Qualidade</option><option>Segurança</option><option>Onboarding</option><option>Desenvolvimento</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Obrigatória</label>
+        <select class="finput fselect" id="t-obrig-i">
+          <option value="true">Sim</option><option value="false">Não</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Prazo (dias)</label><input class="finput" id="t-prazo-i" type="number" placeholder="30"></div>
+      <div class="fgroup"><label class="flabel">Nota mínima (%)</label><input class="finput" id="t-nota-i" type="number" value="70"></div>
+    </div>
+    <button class="btn primary" onclick="salvarTrilha()">Salvar trilha</button>
+    <button class="btn secondary" onclick="closeSheet('sheet-trilha')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ SHEET: FACILITADOR ══ -->
+<div class="overlay" id="sheet-facilitador" onclick="closeSheet('sheet-facilitador')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="stit">Adicionar facilitador</div>
+    <div class="ssub">Selecione a competência e a pessoa de referência</div>
+    <div class="fgroup"><label class="flabel">Competência</label><select class="finput fselect" id="fac-comp-i"></select></div>
+    <div class="fgroup"><label class="flabel">Facilitador</label><select class="finput fselect" id="fac-pessoa-i"></select></div>
+    <button class="btn primary" onclick="salvarFacilitador()">Salvar</button>
+    <button class="btn secondary" onclick="closeSheet('sheet-facilitador')">Cancelar</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  SUPABASE INIT
+// ══════════════════════════════════════════
+const { createClient } = supabase
+const sb = createClient(
+  'https://khqbimmcibutfrfmkoxr.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo'
+)
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let ME = null          // profile do usuário logado
+let SCORE = null       // user_scores
+let TRILHA_ATUAL = null
+let CONTEUDO_ATUAL = null
+let QUIZ_STATE = {}
+let PROG_ATUAL = null  // progressão em análise
+let AREAS = [], CARGOS = [], COMPETENCIAS = [], PESSOAS = []
+let EDITANDO_TRILHA = null
+let EDITANDO_PESSOA = null
+
+const NIVEL_LABEL = {
+  nao_conhece:'Não Conhece', conhece:'Conhece', aplica:'Aplica', ensina:'Ensina'
+}
+const NIVEL_NUM = { nao_conhece:1, conhece:2, aplica:3, ensina:4 }
+const NIVEL_COLORS = ['','#ccc','#FFB81D','#1a7a35','#EE2737']
+const CATCOLORS = ['#FFF3D0','#FDECEA','#E4F5EA','#E4EEFF','#F0EDFF']
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function goSc(name) {
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'))
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))
+  document.getElementById('sc-'+name).classList.add('on')
+  const nb = document.getElementById('nav-'+name)
+  if(nb) nb.classList.add('on')
+  if(name==='home') loadHome()
+  if(name==='trilhas') loadTrilhas()
+  if(name==='dash') loadDash()
+  if(name==='perfil') loadPerfil()
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function toast(icon, msg) {
+  document.getElementById('tico').textContent = icon
+  document.getElementById('tmsg').textContent = msg
+  const t = document.getElementById('toast')
+  t.classList.add('show')
+  setTimeout(()=>t.classList.remove('show'), 2800)
+}
+
+// ══════════════════════════════════════════
+//  SHEETS
+// ══════════════════════════════════════════
+function openSheet(id) { document.getElementById(id).classList.add('on') }
+function closeSheet(id) { document.getElementById(id).classList.remove('on') }
+
+// ══════════════════════════════════════════
+//  AUTH — LOGIN SIMPLES
+// ══════════════════════════════════════════
+async function checkAuth() {
+  const { data:{ session } } = await sb.auth.getSession()
+  if(!session) {
+    renderLogin()
+    return false
+  }
+  await loadMe(session.user.id)
+  return true
+}
+
+function renderLogin() {
+  document.getElementById('app').innerHTML = `
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;background:#0C0C0C;gap:16px">
+    <div style="font-size:32px;font-weight:900;color:#FFB81D;letter-spacing:.5px">Odara Academy</div>
+    <div style="font-size:13px;color:#666;text-align:center">Entre com seu e-mail para acessar</div>
+    <input id="login-email" style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:12px;padding:12px 14px;font-size:14px;color:#fff;outline:none;font-family:inherit" placeholder="seu@email.com" type="email">
+    <button onclick="doLogin()" style="width:100%;background:#FFB81D;color:#0C0C0C;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Entrar com magic link</button>
+    <div style="font-size:11px;color:#444;text-align:center">Você receberá um link de acesso no e-mail</div>
+    <div id="login-msg" style="font-size:13px;color:#FFB81D;text-align:center;display:none"></div>
+  </div>`
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value
+  if(!email) return
+  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href } })
+  const msg = document.getElementById('login-msg')
+  msg.style.display='block'
+  msg.textContent = error ? '❌ Erro: '+error.message : '✅ Link enviado! Verifique seu e-mail.'
+}
+
+async function loadMe(uid) {
+  const { data } = await sb.from('profiles').select(`
+    *,area:areas(id,nome),cargo:cargos(id,nome),unidade:unidades(id,nome),
+    user_scores(xp_total,nivel,streak_dias,ultima_atividade)
+  `).eq('id', uid).single()
+  ME = data
+  SCORE = data?.user_scores?.[0] || { xp_total:0, nivel:'aprendiz', streak_dias:0 }
+}
+
+// ══════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════
+async function loadHome() {
+  if(!ME) return
+  // Header
+  const ini = ME.nome.split(' ').map(w=>w[0]).slice(0,2).join('')
+  document.getElementById('h-av').textContent = ini
+  document.getElementById('h-nome').textContent = ME.nome.split(' ')[0]
+  document.getElementById('h-turno').textContent = (ME.area?.nome||'') + (ME.turno?' · Turno '+ME.turno:'')
+  const xp = SCORE.xp_total
+  const nivelMeta = { aprendiz:[0,500], operador:[500,1200], operador_certificado:[1200,2500], especialista:[2500,5000], mestre_odara:[5000,5000] }
+  const [xpMin, xpMax] = nivelMeta[SCORE.nivel] || [0,1000]
+  const pct = xpMax>xpMin ? Math.round(((xp-xpMin)/(xpMax-xpMin))*100) : 100
+  document.getElementById('h-nivel').textContent = '⭐ '+NIVEL_LABEL[SCORE.nivel]||SCORE.nivel
+  document.getElementById('h-xpbar').style.width = pct+'%'
+  document.getElementById('h-xp').textContent = xp+' XP'
+  document.getElementById('h-streak').textContent = '🔥 '+SCORE.streak_dias+' dia'+(SCORE.streak_dias!==1?'s':'')+' seguidos'
+
+  // Trilhas
+  document.getElementById('home-loading').style.display='flex'
+  document.getElementById('home-content').style.display='none'
+
+  const { data: atrib } = await sb.from('trilhas_atribuicoes').select('trilha_id').or(
+    `profile_id.eq.${ME.id},area_id.eq.${ME.area_id||'00000000-0000-0000-0000-000000000000'},cargo_id.eq.${ME.cargo_id||'00000000-0000-0000-0000-000000000000'}`
+  )
+  const ids = [...new Set((atrib||[]).map(a=>a.trilha_id))]
+  let trilhas = []
+  if(ids.length) {
+    const { data: t } = await sb.from('trilhas').select(`*,progresso_trilhas!left(*)`).in('id', ids).eq('ativo', true)
+    trilhas = (t||[]).map(tr=>({ ...tr, prog: (tr.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)||null }))
+  }
+
+  const urgentes = trilhas.filter(t=>t.obrigatoria && (!t.prog || t.prog.status!=='concluido'))
+  const andamento = trilhas.filter(t=>t.prog && t.prog.status==='em_andamento' && !urgentes.find(u=>u.id===t.id))
+
+  document.getElementById('home-urgentes').innerHTML = urgentes.length
+    ? urgentes.map(t=>trilhaCard(t,'urgente')).join('')
+    : '<div class="empty"><div class="ei">✅</div><p>Nenhuma trilha pendente!</p></div>'
+
+  document.getElementById('home-andamento').innerHTML = andamento.length
+    ? andamento.map(t=>trilhaCard(t)).join('')
+    : '<div style="padding:0 4px 8px;font-size:12px;color:#bbb">Nenhuma trilha em andamento</div>'
+
+  // Ranking
+  await loadRankingHome()
+
+  // Aprovações pendentes (supervisor)
+  if(ME.role==='gestor'||ME.role==='admin') {
+    const { data: pend } = await sb.from('vw_fila_aprovacoes').select('*').eq('supervisor_id', ME.id).limit(3)
+    const box = document.getElementById('home-approvals')
+    if(pend && pend.length) {
+      box.style.display='block'
+      document.getElementById('home-approvals-list').innerHTML = pend.map(p=>`
+        <div class="apcard urg" onclick="abrirAprovacao(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+          <div class="aptop">
+            <div class="apav" style="background:var(--ys)">${iniciais(p.colaborador)}</div>
+            <div class="apinfo">
+              <div class="apname">${p.colaborador}</div>
+              <div class="apmeta">${p.competencia} · ${p.area||''}</div>
+            </div>
+            <span class="days-badge">${p.dias_aguardando}d</span>
+          </div>
+          <div class="niv-row">
+            <span class="niv-badge niv-ant">${NIVEL_LABEL[p.nivel_anterior]||'–'}</span>
+            <span style="color:#ccc;font-size:12px">→</span>
+            <span class="niv-badge niv-new">${NIVEL_LABEL[p.nivel_solicitado]}</span>
+          </div>
+        </div>`).join('')
+    } else { box.style.display='none' }
+  }
+
+  document.getElementById('home-loading').style.display='none'
+  document.getElementById('home-content').style.display='block'
+}
+
+async function loadRankingHome() {
+  if(!ME.area_id) return
+  document.getElementById('h-area-label').textContent = ME.area?.nome||''
+  const { data } = await sb.from('vw_ranking_semanal').select('*').eq('area_id', ME.area_id).order('xp_semana',{ascending:false}).limit(5)
+  if(!data) return
+  document.getElementById('home-ranking').innerHTML = data.map((r,i)=>{
+    const isMe = r.profile_id===ME.id
+    const pos = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)
+    return `<div class="rrow ${isMe?'me':''}">
+      <span class="rpos">${pos}</span>
+      <span class="rname">${r.colaborador}${isMe?' <span style="font-size:10px;color:#bbb">(você)</span>':''}</span>
+      <span class="rpts"><b>${r.xp_semana}</b> pts</span>
+    </div>`
+  }).join('')
+}
+
+function trilhaCard(t, tipo) {
+  const prog = t.prog
+  const pct = prog ? Math.round(prog.percentual) : 0
+  const isUrgente = tipo==='urgente'
+  const isConcluido = prog?.status==='concluido'
+  const pill = isConcluido ? '<span class="cpill pdone">CONCLUÍDO</span>'
+    : isUrgente ? '<span class="cpill purge">⚠ URGENTE</span>'
+    : pct>0 ? '<span class="cpill pnew">+50 XP ao concluir</span>'
+    : '<span class="cpill popt">NOVO</span>'
+  const fillClass = isConcluido ? 'g' : isUrgente ? 'r' : ''
+  const emojis = { BPF:'🧤', Qualidade:'🔬', Segurança:'⛑', Onboarding:'🎉', Desenvolvimento:'📈' }
+  const emoji = emojis[t.categoria]||'📚'
+  return `<div class="card" onclick="abrirTrilha('${t.id}')">
+    <div class="ci">
+      <div class="ctop">
+        <div class="cico ${isUrgente?'r':isConcluido?'g':'y'}">${emoji}</div>
+        <div class="cmeta">
+          <div class="ctit">${t.titulo}</div>
+          <div class="csub">${t.categoria}${prog?.prazo_data?' · Vence '+fmtData(prog.prazo_data):''}</div>
+          ${pill}
+        </div>
+      </div>
+      <div class="cbar">
+        <div class="btrack"><div class="bfill ${fillClass}" style="width:${pct}%"></div></div>
+        <span class="bpct" style="${isUrgente?'color:var(--r)':isConcluido?'color:#1a7a35':''}">${pct}%</span>
+      </div>
+    </div>
+  </div>`
+}
+
+// ══════════════════════════════════════════
+//  TRILHAS
+// ══════════════════════════════════════════
+async function loadTrilhas() {
+  if(!ME) return
+  document.getElementById('trilhas-loading').style.display='flex'
+  document.getElementById('trilhas-list').style.display='none'
+  const { data: atrib } = await sb.from('trilhas_atribuicoes').select('trilha_id').or(
+    `profile_id.eq.${ME.id},area_id.eq.${ME.area_id||'x'},cargo_id.eq.${ME.cargo_id||'x'}`
+  )
+  const ids = [...new Set((atrib||[]).map(a=>a.trilha_id))]
+  let html = ''
+  if(ids.length) {
+    const { data } = await sb.from('trilhas').select(`*,progresso_trilhas!left(*)`).in('id',ids).eq('ativo',true)
+    const trilhas = (data||[]).map(t=>({...t, prog:(t.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)||null}))
+    html = trilhas.map(t=>trilhaCard(t)).join('')
+    document.getElementById('trilhas-sub').textContent = trilhas.length+' trilhas atribuídas'
+  } else {
+    html = '<div class="empty"><div class="ei">📚</div><p>Nenhuma trilha atribuída ainda</p></div>'
+  }
+  document.getElementById('trilhas-loading').style.display='none'
+  const list = document.getElementById('trilhas-list')
+  list.innerHTML = html
+  list.style.display='flex'
+}
+
+async function abrirTrilha(trilhaId) {
+  goSc('trilha')
+  document.getElementById('trilha-modulos').innerHTML = '<div class="loading"><div class="spinner"></div><span>Carregando...</span></div>'
+  const { data } = await sb.from('trilhas').select(`
+    *,progresso_trilhas!left(*),
+    modulos(id,titulo,ordem,ativo,
+      conteudos(id,tipo,titulo,duracao_min,url,ordem,xp_conclusao,obrigatorio,progresso_conteudos!left(*)),
+      avaliacoes(id,titulo,nota_minima,xp_aprovacao,ordem,tentativas_avaliacao!left(*))
+    )
+  `).eq('id', trilhaId).single()
+  if(!data) return
+  TRILHA_ATUAL = data
+  const prog = (data.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)
+  const pct = prog ? Math.round(prog.percentual) : 0
+  document.getElementById('trilha-titulo').textContent = data.titulo
+  document.getElementById('trilha-meta').textContent = (data.obrigatoria?'Obrigatório · ':'')+data.categoria+(prog?.prazo_data?' · Vence '+fmtData(prog.prazo_data):'')
+  document.getElementById('t-pct').textContent = pct+'%'
+  document.getElementById('t-feitos').textContent = (prog?.conteudos_feitos||0)+'/'+( prog?.total_conteudos||'–')
+  document.getElementById('t-dias').textContent = prog?.prazo_data ? diasRestantes(prog.prazo_data)+'d' : '–'
+  document.getElementById('t-bigfill').style.width = pct+'%'
+
+  const mods = (data.modulos||[]).filter(m=>m.ativo).sort((a,b)=>a.ordem-b.ordem)
+  let html = '<div style="padding:12px">'
+  mods.forEach((m,mi)=>{
+    const conteudos = (m.conteudos||[]).sort((a,b)=>a.ordem-b.ordem)
+    const avals = (m.avaliacoes||[]).sort((a,b)=>a.ordem-b.ordem)
+    const todosFeitos = conteudos.every(c=>(c.progresso_conteudos||[]).some(p=>p.profile_id===ME.id&&p.status==='concluido'))
+    const algumAnteriorFeito = mi===0 || (() => {
+      const anterior = mods[mi-1]
+      return (anterior.conteudos||[]).every(c=>(c.progresso_conteudos||[]).some(p=>p.profile_id===ME.id&&p.status==='concluido'))
+    })()
+    const cls = todosFeitos?'g':algumAnteriorFeito?'a':'l'
+    const statusLabel = todosFeitos?'✓ Concluído':algumAnteriorFeito?'Em andamento':'Bloqueado'
+    html += `<div class="mblock"><div class="mlabel">
+      <div class="mnum ${cls}">${String(mi+1).padStart(2,'0')}</div>
+      <span class="mtit">${m.titulo}</span>
+      <span class="mst" style="${todosFeitos?'color:#1a7a35':algumAnteriorFeito?'color:var(--r)':''}">${statusLabel}</span>
+    </div>`
+    conteudos.forEach(c=>{
+      const feito = (c.progresso_conteudos||[]).some(p=>p.profile_id===ME.id&&p.status==='concluido')
+      const bloq = !algumAnteriorFeito
+      const tipoIco = {video:'🎬',texto:'📄',audio:'🔊',imagem:'🖼'}[c.tipo]||'📄'
+      const bgMap = {video:'var(--rs)',texto:'var(--ys)',audio:'var(--bs)',imagem:'var(--gs)'}
+      html += `<div class="citem ${bloq?'lk':''}" onclick="${bloq?'':'abrirConteudo(\''+c.id+'\')'}">
+        <div class="cico2" style="background:${bgMap[c.tipo]||'var(--bg)'}">${tipoIco}</div>
+        <div class="cinfo"><div class="cname">${c.titulo}</div><div class="cdur">${c.tipo} · ${c.duracao_min||'–'} min</div></div>
+        <div class="cchk ${feito?'ck-ok':bloq?'ck-lk':'ck-td'}">${feito?'✓':bloq?'🔒':''}</div>
+      </div>`
+    })
+    avals.forEach(av=>{
+      const tent = (av.tentativas_avaliacao||[]).filter(t=>t.profile_id===ME.id)
+      const aprovado = tent.some(t=>t.aprovado)
+      const bloq = !todosFeitos
+      html += `<div class="citem ${bloq?'lk':''}" onclick="${bloq?'':'abrirQuiz(\''+av.id+'\')'}">
+        <div class="cico2" style="background:#F0EDFF">📝</div>
+        <div class="cinfo"><div class="cname">${av.titulo}</div><div class="cdur">Teste · Nota mín. ${av.nota_minima}%${tent.length?' · '+tent.length+'ª tentativa':''}</div></div>
+        <div class="cchk ${aprovado?'ck-ok':bloq?'ck-lk':'ck-td'}">${aprovado?'✓':bloq?'🔒':''}</div>
+      </div>`
+    })
+    html += '</div>'
+  })
+  html += '</div>'
+  document.getElementById('trilha-modulos').innerHTML = html
+}
+
+// ══════════════════════════════════════════
+//  CONTEÚDO
+// ══════════════════════════════════════════
+async function abrirConteudo(cid) {
+  const { data } = await sb.from('conteudos').select('*').eq('id',cid).single()
+  if(!data) return
+  CONTEUDO_ATUAL = data
+  document.getElementById('sc-titulo').textContent = data.titulo
+  document.getElementById('sc-sub').textContent = data.tipo+' · '+data.duracao_min+' min'
+  const vw = document.getElementById('sc-video-wrap')
+  if(data.tipo==='video' && data.url) {
+    const ytId = data.url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1]
+    vw.style.display='flex'
+    vw.innerHTML = ytId ? `<iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe>`
+      : `<div class="vph"><div class="vi">▶️</div><p style="color:#aaa;font-size:13px">Vídeo YouTube</p></div>`
+  } else { vw.style.display='none' }
+  document.getElementById('sc-body').textContent = data.descricao||''
+  openSheet('sheet-content')
+  await sb.from('progresso_conteudos').upsert({ profile_id:ME.id, conteudo_id:cid, status:'em_andamento', iniciado_em:new Date().toISOString() }, {onConflict:'profile_id,conteudo_id',ignoreDuplicates:true})
+}
+
+async function concluirConteudoAtual() {
+  if(!CONTEUDO_ATUAL) return
+  await sb.from('progresso_conteudos').upsert({
+    profile_id:ME.id, conteudo_id:CONTEUDO_ATUAL.id, status:'concluido',
+    iniciado_em:new Date().toISOString(), concluido_em:new Date().toISOString(), xp_ganho:CONTEUDO_ATUAL.xp_conclusao
+  }, {onConflict:'profile_id,conteudo_id'})
+  closeSheet('sheet-content')
+  toast('🎬', '+'+CONTEUDO_ATUAL.xp_conclusao+' XP — Conteúdo concluído!')
+  if(TRILHA_ATUAL) abrirTrilha(TRILHA_ATUAL.id)
+}
+
+// ══════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════
+async function abrirQuiz(avaliacaoId) {
+  goSc('quiz')
+  const { data } = await sb.from('avaliacoes').select(`*,questoes(id,enunciado,explicacao,ordem,alternativas(id,texto,ordem))`).eq('id',avaliacaoId).single()
+  if(!data) return
+  const questoes = (data.questoes||[]).sort((a,b)=>a.ordem-b.ordem).map(q=>({...q, alternativas:(q.alternativas||[]).sort(()=>Math.random()-.5)}))
+  QUIZ_STATE = { aval:data, questoes, atual:0, acertos:0, inicio:new Date().toISOString(), respondidas:[] }
+  document.getElementById('q-label').textContent = 'TESTE'
+  document.getElementById('q-modulo').textContent = data.titulo
+  document.getElementById('q-nota-min').textContent = 'Nota mínima: '+data.nota_minima+'% · Tentativas ilimitadas'
+  renderDots()
+  renderQuestao()
+  document.getElementById('quiz-q').style.display='block'
+  document.getElementById('quiz-result').style.display='none'
+}
+
+function renderDots() {
+  const { questoes, atual } = QUIZ_STATE
+  document.getElementById('q-counter').textContent = (atual+1)+' de '+questoes.length
+  document.getElementById('q-dots').innerHTML = questoes.map((_,i)=>`<div class="qdot ${i<atual?'done':i===atual?'act':''}"></div>`).join('')
+}
+
+function renderQuestao() {
+  const { questoes, atual } = QUIZ_STATE
+  const q = questoes[atual]
+  const letras = ['A','B','C','D','E']
+  document.getElementById('quiz-q').innerHTML = `
+    <div class="qnum">Questão ${atual+1} de ${questoes.length}</div>
+    <div class="qtxt">${q.enunciado}</div>
+    <div id="qfb" class="qfb"></div>
+    ${q.alternativas.map((a,i)=>`
+      <div class="qopt" id="qo-${a.id}" onclick="responder('${a.id}')">
+        <div class="qltr">${letras[i]}</div>
+        <div class="qotxt">${a.texto}</div>
+      </div>`).join('')}
+    <button class="btn primary" id="qnext" disabled onclick="proximaQ()" style="margin-top:8px">Próxima →</button>`
+}
+
+async function responder(altId) {
+  const { questoes, atual } = QUIZ_STATE
+  const q = questoes[atual]
+  const corretos = q.alternativas.filter(a=>a.correta).map(a=>a.id)
+  // Busca resposta correta do servidor
+  const { data } = await sb.from('alternativas').select('id,correta').eq('questao_id',q.id)
+  const corretaId = (data||[]).find(a=>a.correta)?.id
+  const acertou = altId===corretaId
+  if(acertou) QUIZ_STATE.acertos++
+  QUIZ_STATE.respondidas.push({ questao_id:q.id, alternativa_id:altId, correta:acertou, alternativa_correta:corretaId })
+  q.alternativas.forEach(a=>{
+    const el = document.getElementById('qo-'+a.id)
+    if(!el) return
+    el.onclick=null
+    if(a.id===altId) el.className='qopt '+(acertou?'ok':'no')
+    else if(a.id===corretaId) el.className='qopt ok'
+  })
+  const fb = document.getElementById('qfb')
+  fb.className='qfb show '+(acertou?'ok':'no')
+  fb.textContent = acertou ? '✓ Correto! '+q.explicacao : '✗ Incorreto. '+q.explicacao
+  if(acertou) toast('✓','+10 XP — Resposta correta!')
+  document.getElementById('qnext').disabled=false
+  const isLast = atual === questoes.length-1
+  if(isLast) document.getElementById('qnext').textContent='Ver resultado'
+}
+
+async function proximaQ() {
+  QUIZ_STATE.atual++
+  if(QUIZ_STATE.atual >= QUIZ_STATE.questoes.length) {
+    await finalizarQuiz()
+    return
+  }
+  renderDots()
+  renderQuestao()
+}
+
+async function finalizarQuiz() {
+  const { aval, questoes, acertos, inicio, respondidas } = QUIZ_STATE
+  const nota = Math.round((acertos/questoes.length)*100)
+  const aprovado = nota >= aval.nota_minima
+  const { count } = await sb.from('tentativas_avaliacao').select('id',{count:'exact',head:true}).eq('profile_id',ME.id).eq('avaliacao_id',aval.id)
+  await sb.from('tentativas_avaliacao').insert({
+    profile_id:ME.id, avaliacao_id:aval.id, numero_tentativa:(count||0)+1,
+    nota, aprovado, respostas:respondidas, iniciado_em:inicio, finalizado_em:new Date().toISOString()
+  })
+  document.getElementById('quiz-q').style.display='none'
+  const res = document.getElementById('quiz-result')
+  res.style.display='block'
+  const xp = aprovado ? aval.xp_aprovacao+(count===0?aval.xp_bonus_1a:0) : 0
+  if(aprovado) toast('🏅',`+${xp} XP — Aprovado com ${nota}%!`)
+  res.innerHTML = `
+    <div class="qrico">${aprovado?'🎉':'😔'}</div>
+    <div class="qrtit">${aprovado?'Aprovado!':'Não aprovado'}</div>
+    <div class="qrscore">${nota}%</div>
+    <div class="qrsub">${acertos} de ${questoes.length} corretas · Nota mínima: ${aval.nota_minima}%</div>
+    ${aprovado?`<div class="qrbadge"><div style="font-size:28px">🏅</div><div><div style="font-size:13px;font-weight:700">${count===0?'Aprovado na 1ª tentativa!':'Aprovado!'}</div><div style="font-size:11px;color:#999">+${xp} XP adicionados</div></div></div>`:''}
+    <div class="qrxp">${aprovado?'+'+xp+' XP!':'Tente novamente — sem limite de tentativas'}</div>
+    <button class="btn primary" onclick="goSc('trilha')">Voltar à trilha</button>
+    <button class="btn secondary" onclick="abrirQuiz('${aval.id}')">Refazer teste</button>`
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+async function loadDash() {
+  if(!ME) return
+  const isAdmin = ME.role==='admin'
+  const isGestor = ME.role==='gestor'
+  document.getElementById('dash-sub').textContent = isAdmin?'Visão admin completa':isGestor?'Sua área em foco':'Dashboard'
+  // Oculta aba admin se não for admin
+  const tabs = document.getElementById('dash-tabs')
+  if(ME.role==='colaborador') tabs.style.display='none'
+  loadTabGeral()
+  loadTabPessoas()
+  loadTabTrilhasAdm()
+  loadTabFacilitadores()
+  loadTabAlertas()
+}
+
+async function loadTabGeral() {
+  const { data:areas } = await sb.from('vw_dashboard_areas').select('*')
+  if(!areas) return
+  const total = areas.reduce((s,a)=>s+a.total_colaboradores,0)
+  const conc = areas.reduce((s,a)=>s+a.concluidos,0)
+  const atras = areas.reduce((s,a)=>s+a.atrasados,0)
+  const pctG = total>0?Math.round((conc/total)*100):0
+  document.getElementById('kpis').innerHTML = `
+    <div class="kcard"><div class="kval">${pctG}%</div><div class="klbl">Conclusão geral</div></div>
+    <div class="kcard"><div class="kval r">${atras}</div><div class="klbl">Atrasados</div></div>
+    <div class="kcard"><div class="kval g">${conc}</div><div class="klbl">Certificados</div></div>
+    <div class="kcard"><div class="kval">${total}</div><div class="klbl">Colaboradores</div></div>`
+  document.getElementById('areas-list').innerHTML = areas.map(a=>`
+    <div class="acard">
+      <div class="atop"><span class="aname">${a.area_nome}</span><span class="apct ${a.percentual_medio<50?'low':''}">${Math.round(a.percentual_medio)}%</span></div>
+      <div class="mbar"><div class="mfill ${a.percentual_medio<50?'low':''}" style="width:${a.percentual_medio}%"></div></div>
+      <div class="abot">
+        <span class="astat"><b>${a.total_colaboradores}</b> pessoas</span>
+        <span class="astat"><b>${a.concluidos}</b> concluídos</span>
+        <span class="astat"><b>${a.atrasados}</b> atrasados</span>
+      </div>
+    </div>`).join('')
+}
+
+async function loadTabPessoas() {
+  const { data } = await sb.from('profiles').select(`*,area:areas(nome),cargo:cargos(nome)`).eq('ativo',true).order('nome')
+  PESSOAS = data||[]
+  renderPessoas()
+  // Carrega selects para o form
+  const { data: ar } = await sb.from('areas').select('*').eq('ativo',true)
+  const { data: cg } = await sb.from('cargos').select('*').eq('ativo',true)
+  AREAS = ar||[]; CARGOS = cg||[]
+  document.getElementById('p-area-i').innerHTML = AREAS.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('')
+  document.getElementById('p-cargo-i').innerHTML = CARGOS.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('')
+}
+
+function renderPessoas() {
+  const roleColor = { admin:'#F0EDFF', gestor:'var(--ys)', colaborador:'var(--gs)' }
+  document.getElementById('pessoas-list').innerHTML = PESSOAS.map(p=>`
+    <div class="prow">
+      <div class="pav2" style="background:${roleColor[p.role]||'var(--bg)'}">${iniciais(p.nome)}</div>
+      <div class="pinfo">
+        <div class="pnm">${p.nome}</div>
+        <div class="pmeta">${p.area?.nome||'–'} · ${p.cargo?.nome||'–'} · Turno ${p.turno||'–'}</div>
+      </div>
+      <div class="pactions">
+        <div class="icon-btn" onclick="editarPessoa('${p.id}')">✏️</div>
+        <div class="icon-btn del" onclick="excluirPessoa('${p.id}','${p.nome}')">🗑</div>
+      </div>
+    </div>`).join('')
+}
+
+function editarPessoa(pid) {
+  const p = PESSOAS.find(x=>x.id===pid)
+  if(!p) return
+  EDITANDO_PESSOA = p
+  document.getElementById('p-nome-i').value = p.nome
+  document.getElementById('p-email-i').value = p.email||''
+  document.getElementById('p-mat-i').value = p.matricula||''
+  document.getElementById('p-role-i').value = p.role
+  document.getElementById('p-turno-i').value = p.turno||'A'
+  document.getElementById('p-area-i').value = p.area_id||''
+  document.getElementById('p-cargo-i').value = p.cargo_id||''
+  openSheet('sheet-pessoa')
+}
+
+async function salvarPessoa() {
+  const payload = {
+    nome: document.getElementById('p-nome-i').value,
+    matricula: document.getElementById('p-mat-i').value,
+    role: document.getElementById('p-role-i').value,
+    turno: document.getElementById('p-turno-i').value,
+    area_id: document.getElementById('p-area-i').value||null,
+    cargo_id: document.getElementById('p-cargo-i').value||null,
+  }
+  if(!payload.nome) { toast('❌','Preencha o nome'); return }
+  if(EDITANDO_PESSOA) {
+    await sb.from('profiles').update(payload).eq('id',EDITANDO_PESSOA.id)
+    toast('✅','Colaborador atualizado!')
+  } else {
+    const email = document.getElementById('p-email-i').value
+    if(!email) { toast('❌','Preencha o e-mail'); return }
+    toast('ℹ️','Convite enviado para '+email)
+  }
+  EDITANDO_PESSOA=null
+  closeSheet('sheet-pessoa')
+  loadTabPessoas()
+}
+
+async function excluirPessoa(pid, nome) {
+  if(!confirm('Desativar '+nome+'?')) return
+  await sb.from('profiles').update({ativo:false}).eq('id',pid)
+  toast('🗑','Colaborador removido')
+  loadTabPessoas()
+}
+
+async function loadTabTrilhasAdm() {
+  const { data } = await sb.from('trilhas').select('*').eq('ativo',true).order('created_at',{ascending:false})
+  const catIco = { BPF:'🧤', Qualidade:'🔬', Segurança:'⛑', Onboarding:'🎉', Desenvolvimento:'📈' }
+  document.getElementById('trilhas-adm-list').innerHTML = (data||[]).map(t=>`
+    <div class="tadmin-card">
+      <div class="tadmin-hdr">
+        <div class="tadmin-ico" style="background:var(--ys)">${catIco[t.categoria]||'📚'}</div>
+        <div class="tadmin-info">
+          <div class="tadmin-name">${t.titulo}</div>
+          <div class="tadmin-meta">${t.categoria} · ${t.obrigatoria?'Obrigatória':'Opcional'} · nota mín. ${t.nota_minima}%</div>
+        </div>
+        <div class="icon-btn" onclick="editarTrilha('${t.id}')">✏️</div>
+      </div>
+    </div>`).join('')
+}
+
+function editarTrilha(tid) {
+  // Abrir sheet com dados
+  openSheet('sheet-trilha')
+  document.getElementById('trilha-form-tit').textContent='Editar trilha'
+  EDITANDO_TRILHA = tid
+}
+
+async function salvarTrilha() {
+  const payload = {
+    titulo: document.getElementById('t-titulo-i').value,
+    descricao: document.getElementById('t-desc-i').value,
+    categoria: document.getElementById('t-cat-i').value,
+    obrigatoria: document.getElementById('t-obrig-i').value==='true',
+    prazo_dias: parseInt(document.getElementById('t-prazo-i').value)||null,
+    nota_minima: parseFloat(document.getElementById('t-nota-i').value)||70,
+  }
+  if(!payload.titulo) { toast('❌','Preencha o título'); return }
+  if(EDITANDO_TRILHA) {
+    await sb.from('trilhas').update(payload).eq('id',EDITANDO_TRILHA)
+    toast('✅','Trilha atualizada!')
+  } else {
+    await sb.from('trilhas').insert({...payload, criado_por:ME.id})
+    toast('✅','Trilha criada!')
+  }
+  EDITANDO_TRILHA=null
+  closeSheet('sheet-trilha')
+  loadTabTrilhasAdm()
+}
+
+async function loadTabFacilitadores() {
+  const { data } = await sb.from('facilitadores').select(`
+    *,competencias(nome,categoria),profiles(nome)
+  `).eq('ativo',true)
+  document.getElementById('facilitadores-list').innerHTML = (data||[]).map(f=>`
+    <div class="fac-card">
+      <div class="fac-av" style="background:var(--ys)">${iniciais(f.profiles?.nome||'?')}</div>
+      <div class="fac-info">
+        <div class="fac-name">${f.profiles?.nome||'–'}</div>
+        <div class="fac-comp">${f.competencias?.nome||'–'}</div>
+      </div>
+      <span class="fac-lvl">${f.competencias?.categoria||'–'}</span>
+      <div class="icon-btn del" onclick="removerFacilitador('${f.id}')">🗑</div>
+    </div>`).join('')
+  // Carrega selects do form
+  const { data: comps } = await sb.from('competencias').select('*').eq('ativo',true).order('categoria')
+  COMPETENCIAS = comps||[]
+  document.getElementById('fac-comp-i').innerHTML = COMPETENCIAS.map(c=>`<option value="${c.id}">[${c.categoria}] ${c.nome}</option>`).join('')
+  document.getElementById('fac-pessoa-i').innerHTML = PESSOAS.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('')
+}
+
+async function salvarFacilitador() {
+  const comp = document.getElementById('fac-comp-i').value
+  const pes = document.getElementById('fac-pessoa-i').value
+  if(!comp||!pes) { toast('❌','Selecione competência e pessoa'); return }
+  await sb.from('facilitadores').upsert({ competencia_id:comp, profile_id:pes, ativo:true, criado_por:ME.id }, {onConflict:'competencia_id,profile_id'})
+  toast('✅','Facilitador adicionado!')
+  closeSheet('sheet-facilitador')
+  loadTabFacilitadores()
+}
+
+async function removerFacilitador(fid) {
+  await sb.from('facilitadores').update({ativo:false}).eq('id',fid)
+  toast('🗑','Facilitador removido')
+  loadTabFacilitadores()
+}
+
+async function loadTabAlertas() {
+  const { data } = await sb.from('vw_colaboradores_atrasados').select('*').limit(20)
+  document.getElementById('alertas-list').innerHTML = (data||[]).length===0
+    ? '<div class="empty"><div class="ei">✅</div><p>Nenhum colaborador atrasado</p></div>'
+    : (data||[]).map(a=>`
+      <div class="alcard">
+        <div class="alico">⚠️</div>
+        <div class="altxt"><b>${a.colaborador}</b> · ${a.area||'–'}<br>${a.trilha} · ${Math.round(a.percentual||0)}% · ${a.dias_atraso}d atrasado</div>
+      </div>`).join('')
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('on'))
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'))
+  document.getElementById('tab-'+name).classList.add('on')
+  event.target.classList.add('on')
+}
+
+// ══════════════════════════════════════════
+//  PERFIL + MATRIZ
+// ══════════════════════════════════════════
+async function loadPerfil() {
+  if(!ME) return
+  const ini = ME.nome.split(' ').map(w=>w[0]).slice(0,2).join('')
+  document.getElementById('p-av').textContent = ini
+  document.getElementById('p-nome').textContent = ME.nome
+  document.getElementById('p-meta').textContent = (ME.area?.nome||'')+(ME.turno?' · Turno '+ME.turno:'')+(ME.cargo?' · '+ME.cargo.nome:'')
+  document.getElementById('p-nivel').textContent = '⭐ '+NIVEL_LABEL[SCORE.nivel]||SCORE.nivel
+  document.getElementById('perfil-loading').style.display='flex'
+  document.getElementById('perfil-content').style.display='none'
+
+  // Stats
+  const { count: trilhasOk } = await sb.from('progresso_trilhas').select('id',{count:'exact',head:true}).eq('profile_id',ME.id).eq('status','concluido')
+  const { count: conteudosOk } = await sb.from('progresso_conteudos').select('id',{count:'exact',head:true}).eq('profile_id',ME.id).eq('status','concluido')
+  const { count: badges } = await sb.from('user_badges').select('id',{count:'exact',head:true}).eq('profile_id',ME.id)
+  document.getElementById('p-stats').innerHTML = `
+    <div class="kcard"><div class="kval" style="font-size:22px">${SCORE.xp_total}</div><div class="klbl">XP Total</div></div>
+    <div class="kcard"><div class="kval" style="font-size:22px">${trilhasOk||0}</div><div class="klbl">Trilhas</div></div>
+    <div class="kcard"><div class="kval" style="font-size:22px">${badges||0}</div><div class="klbl">Badges</div></div>`
+
+  // Matriz
+  await loadMatriz()
+
+  // Histórico de testes
+  const { data: hist } = await sb.from('vw_historico_testes').select('*').eq('profile_id',ME.id).limit(10)
+  document.getElementById('hist-testes').innerHTML = (hist||[]).length===0
+    ? '<div class="empty"><div class="ei">📝</div><p>Nenhum teste realizado ainda</p></div>'
+    : (hist||[]).map(h=>`
+      <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:9px;margin-bottom:6px">
+        <div style="width:32px;height:32px;border-radius:9px;background:${h.aprovado?'var(--gs)':'var(--rs)'};display:flex;align-items:center;justify-content:center;font-size:14px">📝</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--dk)">${h.avaliacao}</div><div style="font-size:11px;color:#999;margin-top:1px">${fmtData(h.finalizado_em)} · ${h.numero_tentativa}ª tentativa</div></div>
+        <span style="font-size:13px;font-weight:700;color:${h.aprovado?'#1a7a35':'var(--r)'}">${Math.round(h.nota)}%</span>
+      </div>`).join('')
+
+  document.getElementById('perfil-loading').style.display='none'
+  document.getElementById('perfil-content').style.display='block'
+}
+
+async function loadMatriz() {
+  const { data: matriz } = await sb.from('vw_matriz_colaborador').select('*').eq('profile_id',ME.id)
+  if(!matriz || !matriz.length) {
+    // Se não tem matriz ainda, mostra as competências padrão do cargo
+    const { data: compCargo } = await sb.from('competencias_cargo').select(`
+      *,competencias(id,nome,categoria),
+      facilitadores!left(profile_id,profiles!left(nome))
+    `).eq('cargo_id',ME.cargo_id||'x')
+    if(!compCargo?.length) {
+      document.getElementById('matriz-content').innerHTML='<div class="empty"><div class="ei">📊</div><p>Matriz não configurada para seu cargo ainda</p></div>'
+      return
+    }
+    document.getElementById('matriz-content').innerHTML = renderMatrizCards(compCargo.map(cc=>({
+      competencia_id: cc.competencias.id,
+      competencia: cc.competencias.nome,
+      categoria: cc.competencias.categoria,
+      nivel_atual: 'nao_conhece',
+      nivel_atual_num: 1,
+      nivel_desejado: cc.nivel_desejado,
+      nivel_desejado_num: NIVEL_NUM[cc.nivel_desejado],
+      gap: NIVEL_NUM[cc.nivel_desejado]-1,
+      facilitador_nome: cc.facilitadores?.[0]?.profiles?.nome||null,
+    })))
+    return
+  }
+  document.getElementById('matriz-content').innerHTML = renderMatrizCards(matriz)
+}
+
+function renderMatrizCards(items) {
+  const cats = [...new Set(items.map(i=>i.categoria))]
+  return cats.map(cat=>{
+    const rows = items.filter(i=>i.categoria===cat)
+    return `<div class="mxcard">
+      <div class="mxcat">${cat}</div>
+      ${rows.map(r=>{
+        const gap = r.gap
+        const gapPill = gap<=0?'<span class="gap-pill gap-ok">✓ OK</span>'
+          :gap===1?'<span class="gap-pill gap-1">GAP 1</span>'
+          :gap===2?'<span class="gap-pill gap-2">GAP 2</span>'
+          :'<span class="gap-pill gap-3">GAP 3</span>'
+        const dots = [1,2,3,4].map(n=>{
+          const fill = n<=r.nivel_atual_num ? 'fill' : n<=r.nivel_desejado_num ? 'gap' : ''
+          return `<div class="ndot ${fill}" title="${NIVEL_LABEL[Object.keys(NIVEL_NUM)[n-1]]}" style="${fill==='fill'?'background:var(--y);border-color:var(--y)':fill==='gap'?'border-color:var(--r)':''}"></div>`
+        }).join('')
+        return `<div class="mxrow">
+          <div style="flex:1">
+            <div class="mxname">${r.competencia}</div>
+            ${r.facilitador_nome?`<div class="mxfac">Facilitador: ${r.facilitador_nome}</div>`:''}
+          </div>
+          <div class="niv-dots">${dots}</div>
+          ${gapPill}
+          ${gap>0?`<button class="req-btn" onclick="solicitarProgressao('${r.competencia_id}','${r.competencia}',${r.nivel_atual_num})">Evoluir</button>`:''}
+        </div>`
+      }).join('')}
+    </div>`
+  }).join('')
+}
+
+// ══════════════════════════════════════════
+//  PROGRESSÃO DE COMPETÊNCIA
+// ══════════════════════════════════════════
+function solicitarProgressao(compId, compNome, nivelAtualNum) {
+  PROG_ATUAL = { competencia_id:compId, competencia:compNome, nivel_atual_num:nivelAtualNum }
+  document.getElementById('prog-titulo').textContent = 'Evoluir em: '+compNome
+  document.getElementById('prog-sub').textContent = 'Nível atual: '+Object.values(NIVEL_LABEL)[nivelAtualNum-1]
+  const sel = document.getElementById('prog-nivel')
+  sel.innerHTML = Object.entries(NIVEL_LABEL).filter(([k])=>NIVEL_NUM[k]>nivelAtualNum).map(([k,v],i)=>`<option value="${k}">${NIVEL_NUM[k]} — ${v}</option>`).join('')
+  document.getElementById('prog-obs').value=''
+  openSheet('sheet-progressao')
+}
+
+async function submeterProgressao() {
+  if(!PROG_ATUAL) return
+  const nivelSolicitado = document.getElementById('prog-nivel').value
+  const obs = document.getElementById('prog-obs').value
+  const nivelAnterior = Object.keys(NIVEL_NUM).find(k=>NIVEL_NUM[k]===PROG_ATUAL.nivel_atual_num)||'nao_conhece'
+  // Busca facilitador da competência
+  const { data: fac } = await sb.from('facilitadores').select('profile_id').eq('competencia_id',PROG_ATUAL.competencia_id).eq('ativo',true).limit(1)
+  const facId = fac?.[0]?.profile_id||null
+  await sb.from('progressoes_competencia').insert({
+    profile_id: ME.id,
+    competencia_id: PROG_ATUAL.competencia_id,
+    nivel_anterior: nivelAnterior,
+    nivel_solicitado: nivelSolicitado,
+    obs_colaborador: obs,
+    requer_facilitador: !!facId,
+    facilitador_id: facId,
+  })
+  toast('📤','Solicitação enviada ao supervisor!')
+  closeSheet('sheet-progressao')
+}
+
+// ══════════════════════════════════════════
+//  APROVAÇÃO (SUPERVISOR/FACILITADOR)
+// ══════════════════════════════════════════
+function abrirAprovacao(prog) {
+  PROG_ATUAL = prog
+  document.getElementById('aprov-obs').value=''
+  document.getElementById('aprov-info').innerHTML = `
+    <div class="apcard">
+      <div class="aptop">
+        <div class="apav" style="background:var(--ys)">${iniciais(prog.colaborador)}</div>
+        <div class="apinfo">
+          <div class="apname">${prog.colaborador}</div>
+          <div class="apmeta">${prog.competencia} · ${prog.area||''}<br>${prog.obs_colaborador||''}</div>
+        </div>
+      </div>
+      <div class="niv-row">
+        <span class="niv-badge niv-ant">${NIVEL_LABEL[prog.nivel_anterior]||'–'}</span>
+        <span style="color:#ccc;font-size:14px">→</span>
+        <span class="niv-badge niv-new">${NIVEL_LABEL[prog.nivel_solicitado]}</span>
+      </div>
+    </div>`
+  openSheet('sheet-aprovacao')
+}
+
+async function decidirProgressao(aprovar) {
+  if(!PROG_ATUAL) return
+  const obs = document.getElementById('aprov-obs').value
+  const isSuper = PROG_ATUAL.supervisor_id===ME.id
+  const isFac = PROG_ATUAL.facilitador_id===ME.id
+  const update = {}
+  if(isSuper) {
+    update.supervisor_status = aprovar?'aprovado':'rejeitado'
+    update.supervisor_obs = obs
+    update.supervisor_em = new Date().toISOString()
+  }
+  if(isFac) {
+    update.facilitador_status = aprovar?'aprovado':'rejeitado'
+    update.facilitador_obs = obs
+    update.facilitador_em = new Date().toISOString()
+  }
+  await sb.from('progressoes_competencia').update(update).eq('id',PROG_ATUAL.id)
+  toast(aprovar?'✅':'❌', aprovar?'Progressão aprovada!':'Progressão rejeitada')
+  closeSheet('sheet-aprovacao')
+  loadHome()
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function iniciais(nome) { return (nome||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() }
+function fmtData(d) { if(!d) return '–'; const dt=new Date(d); return dt.toLocaleDateString('pt-BR') }
+function diasRestantes(d) { if(!d) return 0; const diff=new Date(d)-new Date(); return Math.max(0,Math.ceil(diff/86400000)) }
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+async function init() {
+  // Verifica se veio de magic link
+  const hash = location.hash
+  if(hash.includes('access_token')) {
+    await sb.auth.getSession()
+    location.hash=''
+  }
+  const ok = await checkAuth()
+  if(!ok) return
+  goSc('home')
+  // Realtime: XP
+  sb.channel('my-xp').on('postgres_changes',{event:'UPDATE',schema:'public',table:'user_scores',filter:`profile_id=eq.${ME.id}`},
+    ({new:n})=>{ SCORE={...SCORE,...n}; loadHome() }
+  ).subscribe()
+}
+init()
+</script>
+</body>
+</html>
