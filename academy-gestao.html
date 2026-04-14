@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odara Academy — Gestão</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--y:#FFB81D;--yd:#E5A200;--r:#EE2737;--g:#1D9E75;--b:#378ADD;--p:#534AB7;--dk:#0C0C0C;--bg:#FAF8F4;--card:#FFFFFF;--bdr:#E8E5DD;--tx:#1A1A1A;--txs:#777;--radius:12px;--sh:0 2px 8px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+
+.topbar{background:var(--dk);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.topbar .logo{font-size:18px;font-weight:800;color:var(--y);letter-spacing:1px}
+.topbar .logo span{font-weight:400;font-size:12px;color:#888;margin-left:8px}
+.topbar .user-area{display:flex;align-items:center;gap:12px}
+.topbar .uname{color:#ccc;font-size:13px}
+.topbar .ubtn{background:none;border:1px solid #555;color:#aaa;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer}
+.topbar .ubtn:hover{border-color:var(--y);color:var(--y)}
+
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--bdr);padding:16px 0;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar .s-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--txs);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.sidebar .s-item:hover{background:#faf8f4;color:var(--tx)}
+.sidebar .s-item.on{background:#FFF8EA;color:var(--dk);font-weight:600;border-left-color:var(--y)}
+.sidebar .s-icon{font-size:16px;width:20px;text-align:center}
+.sidebar .s-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txs);padding:20px 20px 6px;margin-top:8px}
+
+.main{flex:1;padding:24px 32px;max-width:1000px}
+.pane{display:none}.pane.on{display:block}
+
+/* COMPONENTS */
+.sec-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txs);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+.sec-title:first-child{margin-top:0}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr)}
+.kpi .kv{font-size:28px;font-weight:700}.kpi .kl{font-size:10px;color:var(--txs);margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+
+.btn{border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-y{background:var(--y);color:var(--dk)}.btn-y:hover{background:var(--yd)}
+.btn-r{background:var(--r);color:#fff}
+.btn-o{background:none;border:1px solid var(--bdr);color:var(--tx)}.btn-o:hover{background:#f5f3ee}
+.btn-g{background:var(--g);color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-block{width:100%}
+
+.li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f0ede5;cursor:pointer;transition:background .1s;border-radius:8px;margin-bottom:2px}
+.li:hover{background:#faf8f4}
+.li .avatar{width:36px;height:36px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.li .info{flex:1;min-width:0}
+.li .info .n{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .info .s{font-size:10px;color:var(--txs);margin-top:1px}
+.li .act{font-size:11px;color:var(--b);font-weight:500}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:10px 8px;font-weight:600;color:var(--txs);border-bottom:2px solid var(--bdr);font-size:10px;text-transform:uppercase;letter-spacing:.3px;position:sticky;top:0;background:var(--bg)}
+.tbl td{padding:8px;border-bottom:1px solid #f0ede5;vertical-align:middle}
+.tbl tr:hover td{background:#faf8f4}
+.lvl{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.l0{background:#f0ede5;color:#999}.l1{background:#FAEEDA;color:#854F0B}.l2{background:#E6F1FB;color:#185FA5}.l3{background:#EAF3DE;color:#3B6D11}.l4{background:#EEEDFE;color:#534AB7}
+.gap-badge{background:#FCEBEB;color:#A32D2D;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--card);border-radius:16px;padding:28px;width:90%;max-width:520px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.modal .close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--txs);padding:0 4px}
+.modal .close:hover{color:var(--tx)}
+
+.fgroup{margin-bottom:14px}
+.fgroup label{font-size:11px;font-weight:600;color:var(--txs);display:block;margin-bottom:4px}
+.fgroup input,.fgroup select,.fgroup textarea{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;background:var(--bg);color:var(--tx);font-family:inherit}
+.fgroup input:focus,.fgroup select:focus,.fgroup textarea:focus{outline:none;border-color:var(--y)}
+.fgroup textarea{resize:vertical;min-height:70px}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TRAIL EDITOR */
+.te-mod{background:#faf8f4;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #eee}
+.te-mod .te-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.te-mod .te-head span{font-size:13px;font-weight:600}
+.te-mod .te-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eee;font-size:11px}
+.te-mod .te-item:last-child{border-bottom:none}
+.te-mod .te-item .del{color:var(--r);cursor:pointer;font-size:13px;flex-shrink:0}
+
+/* ATRIBUIÇÃO */
+.assign-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.assign-card h4{font-size:14px;font-weight:600;margin-bottom:12px}
+.assign-list{display:flex;flex-wrap:wrap;gap:6px}
+.assign-chip{font-size:11px;padding:4px 10px;border-radius:16px;border:1px solid var(--bdr);cursor:pointer;transition:all .15s;user-select:none}
+.assign-chip:hover{border-color:var(--y)}
+.assign-chip.on{background:var(--y);color:var(--dk);border-color:var(--y);font-weight:600}
+
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;font-size:11px;color:var(--txs);padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--bdr)}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dk)">
+    <div style="background:var(--card);border-radius:16px;padding:40px;width:380px;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:var(--y)">ODARA</div>
+      <div style="font-size:12px;color:var(--txs);margin-bottom:32px">GESTÃO ACADEMY</div>
+      <div class="fgroup"><input type="email" id="login-email" placeholder="Seu email"></div>
+      <div class="fgroup"><input type="password" id="login-pass" placeholder="Sua senha"></div>
+      <button class="btn btn-y btn-block" onclick="doLogin()" id="login-btn" style="padding:12px;font-size:14px">Entrar</button>
+      <div id="login-msg" style="font-size:12px;margin-top:12px;min-height:18px"></div>
+      <div style="font-size:11px;color:var(--b);margin-top:16px;cursor:pointer;text-decoration:underline" onclick="window.location.href='index.html'">← Voltar para visão do colaborador</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-wrap" style="display:none">
+  <div class="topbar">
+    <div class="logo">ODARA <span>GESTÃO ACADEMY</span></div>
+    <div class="user-area">
+      <span class="uname" id="top-name"></span>
+      <button class="ubtn" onclick="window.location.href='index.html'">Visão colaborador</button>
+      <button class="ubtn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="s-section">Gestão</div>
+      <div class="s-item on" onclick="goPane('trilhas')"><span class="s-icon">📚</span>Trilhas</div>
+      <div class="s-item" onclick="goPane('pessoas')"><span class="s-icon">👥</span>Pessoas</div>
+      <div class="s-item" onclick="goPane('atribuir')"><span class="s-icon">🎯</span>Atribuir trilhas</div>
+      <div class="s-section">Competências</div>
+      <div class="s-item" onclick="goPane('matriz')"><span class="s-icon">📊</span>Matriz individual</div>
+      <div class="s-item" onclick="goPane('geral')"><span class="s-icon">📋</span>Visão geral</div>
+    </div>
+
+    <div class="main">
+      <div class="pane on" id="pn-trilhas"></div>
+      <div class="pane" id="pn-pessoas"></div>
+      <div class="pane" id="pn-atribuir"></div>
+      <div class="pane" id="pn-matriz"></div>
+      <div class="pane" id="pn-geral"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script>
+const SB_URL='https://khqbimmcibutfrfmkoxr.supabase.co'
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo'
+const sb=supabase.createClient(SB_URL,SB_KEY)
+let ME=null,ALL_TRAILS=[],ALL_PEOPLE=[],ALL_COMP=[]
+
+// ── AUTH ──
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim()
+  const pass=document.getElementById('login-pass').value
+  const msg=document.getElementById('login-msg')
+  if(!email){msg.textContent='Informe o email';msg.style.color='#E24B4A';return}
+  document.getElementById('login-btn').textContent='Entrando...'
+  const{error}=await sb.auth.signInWithPassword({email,password:pass})
+  if(error){msg.textContent=error.message;msg.style.color='#E24B4A';document.getElementById('login-btn').textContent='Entrar';return}
+  await initApp()
+}
+async function doLogout(){await sb.auth.signOut();location.reload()}
+
+async function initApp(){
+  const{data:{session}}=await sb.auth.getSession()
+  if(!session){
+    const hash=window.location.hash
+    if(hash&&hash.includes('access_token')){
+      const params=new URLSearchParams(hash.substring(1))
+      await sb.auth.setSession({access_token:params.get('access_token'),refresh_token:params.get('refresh_token')})
+      window.location.hash=''
+    }
+    const{data:{session:s2}}=await sb.auth.getSession()
+    if(!s2) return
+  }
+  const{data:{user}}=await sb.auth.getUser()
+  const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single()
+  if(!p){document.getElementById('login-msg').textContent='Perfil não encontrado';document.getElementById('login-msg').style.color='#E24B4A';document.getElementById('login-btn').textContent='Entrar';return}
+  ME=p
+  document.getElementById('login-page').style.display='none'
+  document.getElementById('app-wrap').style.display='block'
+  document.getElementById('top-name').textContent=ME.nome
+  loadTrilhas()
+}
+
+// ── NAVIGATION ──
+function goPane(id){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'))
+  document.getElementById('pn-'+id).classList.add('on')
+  document.querySelectorAll('.s-item').forEach(s=>s.classList.remove('on'))
+  event.currentTarget.classList.add('on')
+  if(id==='trilhas') loadTrilhas()
+  if(id==='pessoas') loadPessoas()
+  if(id==='atribuir') loadAtribuir()
+  if(id==='matriz') loadMatriz()
+  if(id==='geral') loadGeral()
+}
+
+// ── TRILHAS CRUD ──
+async function loadTrilhas(){
+  const el=document.getElementById('pn-trilhas')
+  el.innerHTML='<div style="color:var(--txs);padding:40px;text-align:center">Carregando...</div>'
+  const{data}=await sb.from('trilhas').select('*,modulos(id,titulo,ordem,conteudos(id,titulo,tipo,ordem,subtipo,xp_conclusao),avaliacoes(id,titulo,ordem,xp_aprovacao))').order('categoria').order('titulo')
+  ALL_TRAILS=data||[]
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2 style="font-size:18px;font-weight:700">Trilhas <span style="font-weight:400;color:var(--txs);font-size:14px">(${ALL_TRAILS.length})</span></h2>
+    <button class="btn btn-y" onclick="openTrailForm()">+ Nova trilha</button>
+  </div>`
+  const cats=[...new Set(ALL_TRAILS.map(t=>t.categoria))]
+  cats.forEach(cat=>{
+    h+=`<div class="sec-title">${cat}</div>`
+    ALL_TRAILS.filter(t=>t.categoria===cat).forEach(t=>{
+      const mods=(t.modulos||[]).sort((a,b)=>a.ordem-b.ordem)
+      const totalC=mods.reduce((s,m)=>s+(m.conteudos?.length||0)+(m.avaliacoes?.length||0),0)
+      h+=`<div class="li" onclick="openTrailEditor('${t.id}')">
+        <div class="avatar" style="border-radius:10px;font-size:11px">${t.titulo.substring(0,2).toUpperCase()}</div>
+        <div class="info"><div class="n">${t.titulo}</div><div class="s">${mods.length} módulos · ${totalC} conteúdos · ${t.xp_conclusao} XP${t.obrigatoria?' · Obrigatória':''}</div></div>
+        <div class="act">editar →</div>
+      </div>`
+    })
+  })
+  el.innerHTML=h
+}
+
+function openTrailForm(trail){
+  const t=trail||{titulo:'',descricao:'',categoria:'Operacional',obrigatoria:true,prazo_dias:30,nota_minima:70,xp_conclusao:200}
+  const isEdit=!!trail?.id
+  let h=`<h3>${isEdit?'Editar':'Nova'} trilha <button class="close" onclick="closeModal()">×</button></h3>
+    <div class="fgroup"><label>Título</label><input id="tf-titulo" value="${t.titulo}"></div>
+    <div class="fgroup"><label>Descrição</label><textarea id="tf-desc">${t.descricao||''}</textarea></div>
+    <div class="row-2">
+      <div class="fgroup"><label>Categoria</label><select id="tf-cat"><option ${t.categoria==='Operacional'?'selected':''}>Operacional</option><option ${t.categoria==='Qualidade'?'selected':''}>Qualidade</option><option ${t.categoria==='BPF'?'selected':''}>BPF</option><option ${t.categoria==='Segurança'?'selected':''}>Segurança</option></select></div>
+      <div class="fgroup"><label>Prazo (dias)</label><input type="number" id="tf-prazo" value="${t.prazo_dias||30}"></div>
+    </div>
+    <div class="row-2">
+      <div class="fgroup"><label>Nota mínima (%)</label><input type="number" id="tf-nota" value="${t.nota_minima||70}"></div>
+      <div class="fgroup"><label>XP conclusão</label><input type="number" id="tf-xp" value="${t.xp_conclusao||200}"></div>
+    </div>
+    <div class="fgroup"><label><input type="checkbox" id="tf-obr" ${t.obrigatoria?'checked':''}> Obrigatória</label></div>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-y btn-block" onclick="saveTrail('${t.id||''}')">${isEdit?'Salvar alterações':'Criar trilha'}</button>
+      ${isEdit?`<button class="btn btn-r" onclick="deleteTrail('${t.id}')">Excluir</button>`:''}
+    </div>`
+  showModal(h)
+}
+
+async function saveTrail(id){
+  const obj={titulo:document.getElementById('tf-titulo').value,descricao:document.getElementById('tf-desc').value,categoria:document.getElementById('tf-cat').value,prazo_dias:parseInt(document.getElementById('tf-prazo').value)||30,nota_minima:parseFloat(document.getElementById('tf-nota').value)||70,xp_conclusao:parseInt(document.getElementById('tf-xp').value)||200,obrigatoria:document.getElementById('tf-obr').checked,ativo:true}
+  if(id){await sb.from('trilhas').update(obj).eq('id',id)}else{await sb.from('trilhas').insert(obj)}
+  closeModal();loadTrilhas()
+}
+
+async function deleteTrail(id){if(!confirm('Excluir esta trilha?'))return;await sb.from('trilhas').delete().eq('id',id);closeModal();loadTrilhas()}
+
+async function openTrailEditor(id){
+  const{data:t}=await sb.from('trilhas').select('*,modulos(id,titulo,ordem,ativo,conteudos(id,titulo,tipo,duracao_min,url,ordem,xp_conclusao,obrigatorio,subtipo),avaliacoes(id,titulo,nota_minima,xp_aprovacao,ordem))').eq('id',id).single()
+  if(!t)return
+  const mods=(t.modulos||[]).sort((a,b)=>a.ordem-b.ordem)
+  let h=`<h3 style="margin-bottom:8px">${t.titulo} <button class="close" onclick="closeModal()">×</button></h3>
+    <div style="font-size:12px;color:var(--txs);margin-bottom:16px">${t.categoria} · ${t.xp_conclusao} XP · ${t.prazo_dias} dias</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="btn btn-o btn-sm" onclick="closeModal();openTrailForm(${JSON.stringify(t).replace(/"/g,'&quot;')})">Editar info</button>
+      <button class="btn btn-y btn-sm" onclick="openModForm('${t.id}')">+ Módulo</button>
+    </div>`
+  mods.forEach((m,mi)=>{
+    const items=[...(m.conteudos||[]).sort((a,b)=>a.ordem-b.ordem),...(m.avaliacoes||[]).map(a=>({...a,tipo:'avaliacao'})).sort((a,b)=>a.ordem-b.ordem)]
+    h+=`<div class="te-mod"><div class="te-head">
+        <span>${mi+1}. ${m.titulo}</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-o btn-sm" onclick="openModForm('${t.id}',${JSON.stringify({id:m.id,titulo:m.titulo,ordem:m.ordem}).replace(/"/g,'&quot;')})">editar</button>
+          <button class="btn btn-y btn-sm" onclick="openContentForm('${m.id}','${t.id}')">+ conteúdo</button>
+          <button class="btn btn-r btn-sm" onclick="deleteMod('${m.id}','${t.id}')">×</button>
+        </div>
+      </div>`
+    items.forEach(it=>{
+      const icos={video:'▶',texto:'📄',audio:'🎧',avaliacao:'📝'}
+      h+=`<div class="te-item">
+        <span>${icos[it.tipo]||'📝'}</span>
+        <span style="flex:1">${it.titulo}</span>
+        <span style="color:var(--txs)">+${it.xp_conclusao||it.xp_aprovacao||0} XP</span>
+        <span class="del" onclick="deleteContent('${it.id}','${it.tipo}','${t.id}')">×</span>
+      </div>`
+    })
+    if(!items.length) h+='<div style="font-size:11px;color:var(--txs);padding:8px 0;text-align:center">Nenhum conteúdo neste módulo</div>'
+    h+='</div>'
+  })
+  if(!mods.length) h+='<div style="font-size:12px;color:var(--txs);text-align:center;padding:20px">Nenhum módulo ainda. Clique em "+ Módulo" para começar.</div>'
+  showModal(h)
+}
+
+function openModForm(trilhaId,mod){
+  const m=mod||{titulo:'',ordem:1};const isEdit=!!mod?.id
+  let h=`<h3>${isEdit?'Editar':'Novo'} módulo <button class="close" onclick="closeModal()">×</button></h3>
+    <div class="fgroup"><label>Título</label><input id="mf-titulo" value="${m.titulo}"></div>
+    <div class="fgroup"><label>Ordem</label><input type="number" id="mf-ordem" value="${m.ordem||1}"></div>
+    <button class="btn btn-y btn-block" onclick="saveMod('${trilhaId}','${m.id||''}')">${isEdit?'Salvar':'Criar módulo'}</button>`
+  showModal(h)
+}
+
+async function saveMod(tid,mid){
+  const obj={trilha_id:tid,titulo:document.getElementById('mf-titulo').value,ordem:parseInt(document.getElementById('mf-ordem').value)||1,ativo:true}
+  if(mid)await sb.from('modulos').update(obj).eq('id',mid);else await sb.from('modulos').insert(obj)
+  closeModal();openTrailEditor(tid)
+}
+
+async function deleteMod(mid,tid){if(!confirm('Excluir módulo e conteúdos?'))return;await sb.from('modulos').delete().eq('id',mid);openTrailEditor(tid)}
+
+function openContentForm(modId,trailId){
+  let h=`<h3>Novo conteúdo <button class="close" onclick="closeModal()">×</button></h3>
+    <div class="fgroup"><label>Título</label><input id="cf-titulo"></div>
+    <div class="row-2">
+      <div class="fgroup"><label>Tipo</label><select id="cf-tipo"><option value="video">Vídeo</option><option value="texto">Leitura</option><option value="audio">Áudio</option><option value="imagem">Imagem</option></select></div>
+      <div class="fgroup"><label>Subtipo</label><select id="cf-sub"><option value="">— Nenhum</option><option value="atividade_supervisionada">Atividade supervisionada</option><option value="validacao_supervisor">Validação supervisor</option><option value="validacao_facilitador">Validação facilitador</option></select></div>
+    </div>
+    <div class="row-2">
+      <div class="fgroup"><label>Duração (min)</label><input type="number" id="cf-min" value="10"></div>
+      <div class="fgroup"><label>XP</label><input type="number" id="cf-xp" value="20"></div>
+    </div>
+    <div class="fgroup"><label>URL do conteúdo</label><input id="cf-url" placeholder="https://..."></div>
+    <div class="row-2">
+      <div class="fgroup"><label>Ordem</label><input type="number" id="cf-ordem" value="1"></div>
+      <div class="fgroup"><label><input type="checkbox" id="cf-obr" checked> Obrigatório</label></div>
+    </div>
+    <button class="btn btn-y btn-block" onclick="saveContent('${modId}','${trailId}')">Adicionar conteúdo</button>`
+  showModal(h)
+}
+
+async function saveContent(mid,tid){
+  await sb.from('conteudos').insert({modulo_id:mid,titulo:document.getElementById('cf-titulo').value,tipo:document.getElementById('cf-tipo').value,subtipo:document.getElementById('cf-sub').value||null,duracao_min:parseInt(document.getElementById('cf-min').value)||0,xp_conclusao:parseInt(document.getElementById('cf-xp').value)||20,url:document.getElementById('cf-url').value||null,ordem:parseInt(document.getElementById('cf-ordem').value)||1,obrigatorio:document.getElementById('cf-obr').checked})
+  closeModal();openTrailEditor(tid)
+}
+
+async function deleteContent(id,tipo,tid){
+  if(!confirm('Excluir?'))return
+  if(tipo==='avaliacao')await sb.from('avaliacoes').delete().eq('id',id);else await sb.from('conteudos').delete().eq('id',id)
+  openTrailEditor(tid)
+}
+
+// ── PESSOAS CRUD ──
+async function loadPessoas(){
+  const el=document.getElementById('pn-pessoas')
+  el.innerHTML='<div style="color:var(--txs);padding:40px;text-align:center">Carregando...</div>'
+  const{data}=await sb.from('profiles').select('*').order('nome')
+  ALL_PEOPLE=data||[]
+  // Busca cargos e areas
+  const{data:cargos}=await sb.from('cargos').select('id,nome')
+  const{data:areas}=await sb.from('areas').select('id,nome')
+  const cargoMap=Object.fromEntries((cargos||[]).map(c=>[c.id,c.nome]))
+  const areaMap=Object.fromEntries((areas||[]).map(a=>[a.id,a.nome]))
+
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2 style="font-size:18px;font-weight:700">Pessoas <span style="font-weight:400;color:var(--txs);font-size:14px">(${ALL_PEOPLE.length})</span></h2>
+    <button class="btn btn-y" onclick="openPersonForm()">+ Novo colaborador</button>
+  </div>`
+  ALL_PEOPLE.forEach(p=>{
+    const ini=(p.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+    h+=`<div class="li" onclick="openPersonForm(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="avatar">${ini}</div>
+      <div class="info"><div class="n">${p.nome||'—'}</div><div class="s">${cargoMap[p.cargo_id]||'—'} · ${areaMap[p.area_id]||'—'} · ${p.role||'colaborador'}</div></div>
+      <div class="act">editar →</div>
+    </div>`
+  })
+  if(!ALL_PEOPLE.length) h+='<div style="text-align:center;padding:40px;color:var(--txs)">Nenhum colaborador cadastrado</div>'
+  el.innerHTML=h
+}
+
+async function openPersonForm(person){
+  const p=person||{nome:'',matricula:'',role:'colaborador',turno:'A'}
+  const isEdit=!!p.id
+  const{data:areas}=await sb.from('areas').select('id,nome')
+  const{data:cargos}=await sb.from('cargos').select('id,nome')
+  let h=`<h3>${isEdit?'Editar':'Novo'} colaborador <button class="close" onclick="closeModal()">×</button></h3>
+    <div class="fgroup"><label>Nome</label><input id="pf-nome" value="${p.nome||''}"></div>
+    <div class="row-2">
+      <div class="fgroup"><label>Matrícula</label><input id="pf-mat" value="${p.matricula||''}"></div>
+      <div class="fgroup"><label>Turno</label><select id="pf-turno"><option ${p.turno==='A'?'selected':''}>A</option><option ${p.turno==='B'?'selected':''}>B</option><option ${p.turno==='C'?'selected':''}>C</option></select></div>
+    </div>
+    <div class="row-2">
+      <div class="fgroup"><label>Perfil</label><select id="pf-role"><option value="colaborador" ${p.role==='colaborador'?'selected':''}>Colaborador</option><option value="gestor" ${p.role==='gestor'?'selected':''}>Gestor</option><option value="admin" ${p.role==='admin'?'selected':''}>Admin</option></select></div>
+      <div class="fgroup"><label>Área</label><select id="pf-area"><option value="">—</option>${(areas||[]).map(a=>`<option value="${a.id}" ${p.area_id===a.id?'selected':''}>${a.nome}</option>`).join('')}</select></div>
+    </div>
+    <div class="fgroup"><label>Cargo</label><select id="pf-cargo"><option value="">—</option>${(cargos||[]).map(c=>`<option value="${c.id}" ${p.cargo_id===c.id?'selected':''}>${c.nome}</option>`).join('')}</select></div>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-y btn-block" onclick="savePerson('${p.id||''}')">${isEdit?'Salvar':'Criar'}</button>
+      ${isEdit?`<button class="btn btn-r" onclick="deletePerson('${p.id}')">Excluir</button>`:''}
+    </div>`
+  showModal(h)
+}
+
+async function savePerson(id){
+  const obj={nome:document.getElementById('pf-nome').value,matricula:document.getElementById('pf-mat').value,role:document.getElementById('pf-role').value,turno:document.getElementById('pf-turno').value,area_id:document.getElementById('pf-area').value||null,cargo_id:document.getElementById('pf-cargo').value||null}
+  if(id)await sb.from('profiles').update(obj).eq('id',id);else await sb.from('profiles').insert(obj)
+  closeModal();loadPessoas()
+}
+
+async function deletePerson(id){if(!confirm('Excluir?'))return;await sb.from('profiles').delete().eq('id',id);closeModal();loadPessoas()}
+
+// ── ATRIBUIR TRILHAS ──
+async function loadAtribuir(){
+  const el=document.getElementById('pn-atribuir')
+  el.innerHTML='<div style="color:var(--txs);padding:40px;text-align:center">Carregando...</div>'
+  const{data:people}=await sb.from('profiles').select('id,nome').order('nome')
+  const{data:trails}=await sb.from('trilhas').select('id,titulo,categoria').eq('ativo',true).order('categoria,titulo')
+  const{data:assigns}=await sb.from('trilhas_atribuicoes').select('*')
+  ALL_PEOPLE=people||[];ALL_TRAILS=trails||[]
+  const assignSet=new Set((assigns||[]).map(a=>a.profile_id+'_'+a.trilha_id))
+
+  let h=`<div style="margin-bottom:20px"><h2 style="font-size:18px;font-weight:700">Atribuir trilhas</h2>
+    <p style="font-size:12px;color:var(--txs);margin-top:4px">Selecione quais trilhas cada colaborador deve realizar</p></div>`
+
+  ALL_PEOPLE.forEach(p=>{
+    const ini=(p.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+    h+=`<div class="assign-card"><h4>${p.nome}</h4><div class="assign-list">`
+    ALL_TRAILS.forEach(t=>{
+      const isOn=assignSet.has(p.id+'_'+t.id)
+      h+=`<div class="assign-chip ${isOn?'on':''}" onclick="toggleAssign('${p.id}','${t.id}',this)" title="${t.categoria}">${t.titulo}</div>`
+    })
+    h+='</div></div>'
+  })
+  el.innerHTML=h
+}
+
+async function toggleAssign(pid,tid,el){
+  if(el.classList.contains('on')){
+    await sb.from('trilhas_atribuicoes').delete().eq('profile_id',pid).eq('trilha_id',tid)
+    el.classList.remove('on')
+  }else{
+    await sb.from('trilhas_atribuicoes').insert({profile_id:pid,trilha_id:tid})
+    el.classList.add('on')
+  }
+}
+
+// ── MATRIZ INDIVIDUAL ──
+async function loadMatriz(){
+  const el=document.getElementById('pn-matriz')
+  el.innerHTML='<div style="color:var(--txs);padding:40px;text-align:center">Carregando...</div>'
+  const{data:people}=await sb.from('profiles').select('id,nome').order('nome')
+  const{data:comp}=await sb.from('competencias').select('*').order('categoria,nome')
+  ALL_COMP=comp||[]
+  let h=`<h2 style="font-size:18px;font-weight:700;margin-bottom:16px">Matriz de competências</h2>
+    <div class="fgroup" style="max-width:400px"><label>Selecione o colaborador</label><select id="mx-sel" onchange="showMatriz()"><option value="">— Selecione —</option>`
+  ;(people||[]).forEach(p=>h+=`<option value="${p.id}">${p.nome}</option>`)
+  h+='</select></div><div id="mx-view"></div>'
+  el.innerHTML=h
+}
+
+async function showMatriz(){
+  const pid=document.getElementById('mx-sel').value
+  const el=document.getElementById('mx-view')
+  if(!pid){el.innerHTML='';return}
+  el.innerHTML='<div style="color:var(--txs);padding:20px;text-align:center">Carregando...</div>'
+  const{data:mc}=await sb.from('matriz_competencias').select('*').eq('profile_id',pid)
+  const matrix=mc||[]
+  const cats=[...new Set(ALL_COMP.map(c=>c.categoria))]
+  let totalGap=0
+  let h=''
+  cats.forEach(cat=>{
+    h+=`<div class="sec-title">${cat}</div>`
+    ALL_COMP.filter(c=>c.categoria===cat).forEach(comp=>{
+      const m=matrix.find(x=>x.competencia_id===comp.id)
+      const atual=m?.nivel_atual||0,desejado=m?.nivel_desejado||0
+      const gap=Math.max(0,desejado-atual);totalGap+=gap
+      h+=`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f0ede5">
+        <span style="font-size:12px;flex:1">${comp.nome}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div><div style="font-size:9px;color:var(--txs);margin-bottom:2px">Atual</div><select style="width:55px;font-size:11px;padding:4px" onchange="updateMatriz('${pid}','${comp.id}','nivel_atual',this.value)">${[0,1,2,3,4].map(n=>`<option value="${n}" ${atual===n?'selected':''}>${n}</option>`).join('')}</select></div>
+          <span style="color:var(--txs);font-size:12px;margin-top:12px">→</span>
+          <div><div style="font-size:9px;color:var(--txs);margin-bottom:2px">Desejado</div><select style="width:55px;font-size:11px;padding:4px" onchange="updateMatriz('${pid}','${comp.id}','nivel_desejado',this.value)">${[0,1,2,3,4].map(n=>`<option value="${n}" ${desejado===n?'selected':''}>${n}</option>`).join('')}</select></div>
+          ${gap>0?`<span class="gap-badge" style="margin-top:12px">gap ${gap}</span>`:atual>0?'<span style="color:var(--g);font-size:11px;margin-top:12px">✓</span>':''}
+        </div>
+      </div>`
+    })
+  })
+  h+=`<div style="margin-top:16px;padding:16px;background:var(--card);border-radius:8px;border:1px solid var(--bdr)">
+    <strong>Gap total: ${totalGap}</strong> | 0=Não conhece · 1=Conhece · 2=Aplica · 3=Aplica c/ autonomia · 4=Ensina</div>`
+  el.innerHTML=h
+}
+
+async function updateMatriz(pid,cid,field,val){
+  const{data:ex}=await sb.from('matriz_competencias').select('id').eq('profile_id',pid).eq('competencia_id',cid).maybeSingle()
+  if(ex){await sb.from('matriz_competencias').update({[field]:parseInt(val)}).eq('id',ex.id)}
+  else{await sb.from('matriz_competencias').insert({profile_id:pid,competencia_id:cid,nivel_atual:0,nivel_desejado:0,[field]:parseInt(val)})}
+}
+
+// ── VISÃO GERAL ──
+async function loadGeral(){
+  const el=document.getElementById('pn-geral')
+  el.innerHTML='<div style="color:var(--txs);padding:40px;text-align:center">Carregando...</div>'
+  const{data:people}=await sb.from('profiles').select('id,nome').order('nome')
+  const{data:comp}=await sb.from('competencias').select('*').order('categoria,nome')
+  const{data:allMc}=await sb.from('matriz_competencias').select('*')
+  ALL_COMP=comp||[];const ppl=people||[];const mc=allMc||[]
+  let totalGaps=0,critCount=0
+  ppl.forEach(p=>{let hasCrit=false;ALL_COMP.forEach(c=>{const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id);const gap=(m?.nivel_desejado||0)-(m?.nivel_atual||0);if(gap>0)totalGaps+=gap;if(gap>=2)hasCrit=true});if(hasCrit)critCount++})
+
+  let h=`<h2 style="font-size:18px;font-weight:700;margin-bottom:16px">Visão geral de competências</h2>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kv">${ppl.length}</div><div class="kl">Colaboradores</div></div>
+      <div class="kpi"><div class="kv">${ALL_COMP.length}</div><div class="kl">Competências</div></div>
+      <div class="kpi"><div class="kv">${totalGaps}</div><div class="kl">Gaps totais</div></div>
+      <div class="kpi"><div class="kv" style="color:var(--r)">${critCount}</div><div class="kl">Gap crítico (≥2)</div></div>
+    </div>`
+  h+=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th style="min-width:140px">Colaborador</th>`
+  ALL_COMP.forEach(c=>h+=`<th style="text-align:center;max-width:50px;font-size:8px;word-break:break-all">${c.nome.split(' ').slice(0,2).join(' ')}</th>`)
+  h+=`<th style="text-align:center">Gaps</th></tr></thead><tbody>`
+  ppl.forEach(p=>{
+    let gaps=0
+    h+=`<tr><td><strong style="font-size:12px">${p.nome}</strong></td>`
+    ALL_COMP.forEach(c=>{
+      const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id)
+      const lvl=m?.nivel_atual||0,tgt=m?.nivel_desejado||0,gap=Math.max(0,tgt-lvl);gaps+=gap
+      h+=`<td style="text-align:center"><span class="lvl l${lvl}">${lvl}</span>${gap>=2?'<br><span class="gap-badge">-'+gap+'</span>':''}</td>`
+    })
+    h+=`<td style="text-align:center;font-weight:700;${gaps>5?'color:var(--r)':''}">${gaps}</td></tr>`
+  })
+  h+='</tbody></table></div>'
+  h+=`<div class="legend"><span><span class="lvl l0">0</span> Não conhece</span><span><span class="lvl l1">1</span> Conhece</span><span><span class="lvl l2">2</span> Aplica</span><span><span class="lvl l3">3</span> Aplica c/ autonomia</span><span><span class="lvl l4">4</span> Ensina</span>
+    <span style="margin-left:8px"><span class="gap-badge">-N</span> gap crítico ≥2 níveis</span></div>`
+  el.innerHTML=h
+}
+
+// ── MODAL ──
+function showModal(h){document.getElementById('modal-body').innerHTML=h;document.getElementById('modal-bg').classList.add('on')}
+function closeModal(){document.getElementById('modal-bg').classList.remove('on')}
+
+// ── INIT ──
+initApp()
+</script>
+</body>
+</html>

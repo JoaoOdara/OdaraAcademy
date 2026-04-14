@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odara Academy — Colaborador</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--y:#FFB81D;--yd:#E5A200;--r:#EE2737;--g:#1D9E75;--b:#378ADD;--p:#534AB7;--dk:#0C0C0C;--bg:#FAF8F4;--card:#FFFFFF;--bdr:#E8E5DD;--tx:#1A1A1A;--txs:#777;--radius:12px;--sh:0 2px 8px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+
+/* LAYOUT */
+.topbar{background:var(--dk);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.topbar .logo{font-size:18px;font-weight:800;color:var(--y);letter-spacing:1px}
+.topbar .logo span{font-weight:400;font-size:12px;color:#888;margin-left:8px}
+.topbar .user-area{display:flex;align-items:center;gap:12px}
+.topbar .avatar{width:32px;height:32px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.topbar .uname{color:#ccc;font-size:13px}
+.topbar .ubtn{background:none;border:1px solid #555;color:#aaa;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer}
+.topbar .ubtn:hover{border-color:var(--y);color:var(--y)}
+.topbar .nav-links{display:flex;gap:4px}
+.topbar .nav-link{background:none;border:none;color:#888;font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:500}
+.topbar .nav-link.on{background:rgba(255,184,29,.15);color:var(--y)}
+.topbar .nav-link:hover{color:var(--y)}
+
+.container{max-width:1100px;margin:0 auto;padding:24px}
+.page{display:none}.page.on{display:block}
+
+/* LOGIN */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dk)}
+.login-box{background:var(--card);border-radius:16px;padding:40px;width:380px;text-align:center}
+.login-box .logo{font-size:28px;font-weight:800;color:var(--y);margin-bottom:4px}
+.login-box .sub{font-size:12px;color:var(--txs);margin-bottom:32px}
+.login-box input{width:100%;padding:12px 14px;border:1px solid var(--bdr);border-radius:8px;font-size:14px;margin-bottom:12px;background:#faf8f4}
+.login-box input:focus{outline:none;border-color:var(--y)}
+.login-box .btn{width:100%;padding:12px;background:var(--y);color:var(--dk);border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.login-box .btn:hover{background:var(--yd)}
+.login-box .msg{font-size:12px;margin-top:12px;min-height:18px}
+.login-box .link{font-size:11px;color:var(--b);margin-top:16px;cursor:pointer;text-decoration:underline}
+
+/* CARDS */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--sh);padding:20px;border:1px solid var(--bdr);transition:all .2s;cursor:pointer}
+.card:hover{border-color:var(--yd);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.card .c-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.card .c-ico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.card .c-title{font-size:15px;font-weight:600;line-height:1.3}
+.card .c-cat{font-size:11px;color:var(--txs);margin-top:2px}
+.card .c-desc{font-size:12px;color:var(--txs);margin-bottom:12px;line-height:1.5}
+.card .c-bar{height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.card .c-fill{height:100%;border-radius:3px;transition:width .5s}
+.card .c-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--txs);margin-top:6px}
+.pill{font-size:10px;padding:3px 10px;border-radius:12px;font-weight:600;display:inline-block}
+
+/* SECTION */
+.sec-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txs);margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+.sec-title:first-child{margin-top:0}
+
+/* TRAIL DETAIL */
+.trail-header{background:var(--dk);border-radius:var(--radius);padding:28px;color:#fff;margin-bottom:24px}
+.trail-header h1{font-size:22px;font-weight:700;color:var(--y)}
+.trail-header .desc{font-size:13px;color:#aaa;margin-top:6px;line-height:1.5}
+.trail-stats{display:flex;gap:32px;margin-top:20px}
+.trail-stats .st{text-align:center}
+.trail-stats .st .v{font-size:24px;font-weight:700}
+.trail-stats .st .l{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.trail-bar{height:8px;background:#333;border-radius:4px;margin-top:16px;overflow:hidden}
+.trail-bar .fill{height:100%;background:var(--y);border-radius:4px}
+
+/* MODULES */
+.mod-block{background:var(--card);border-radius:var(--radius);border:1px solid var(--bdr);margin-bottom:12px;overflow:hidden}
+.mod-head{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;transition:background .15s}
+.mod-head:hover{background:#faf8f4}
+.mod-head .num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.mod-head .m-title{font-size:14px;font-weight:600;flex:1}
+.mod-head .m-xp{font-size:11px;color:var(--txs);margin-right:8px}
+.mod-head .arrow{font-size:12px;color:var(--txs);transition:transform .2s}
+.mod-head .arrow.open{transform:rotate(180deg)}
+.mod-items{display:none;border-top:1px solid var(--bdr)}
+.mod-items.open{display:block}
+.item{display:flex;align-items:center;gap:12px;padding:12px 20px 12px 64px;border-bottom:1px solid #f5f3ee;transition:background .1s;cursor:pointer}
+.item:last-child{border-bottom:none}
+.item:hover{background:#faf8f4}
+.item .i-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.item .i-info{flex:1}
+.item .i-name{font-size:13px;font-weight:500}
+.item .i-type{font-size:10px;color:var(--txs);margin-top:1px}
+.item .i-xp{font-size:10px;color:var(--txs);background:#f5f3ee;padding:3px 8px;border-radius:8px}
+.item .i-check{width:22px;height:22px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s}
+.item .i-check.done{background:var(--g);border-color:var(--g);color:#fff}
+
+/* PROFILE SECTION */
+.profile-header{background:var(--dk);border-radius:var(--radius);padding:28px;color:#fff;margin-bottom:24px;display:flex;align-items:center;gap:20px}
+.profile-header .p-avatar{width:64px;height:64px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0}
+.profile-header .p-name{font-size:20px;font-weight:700;color:var(--y)}
+.profile-header .p-role{font-size:13px;color:#aaa;margin-top:4px}
+
+.comp-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0ede5}
+.comp-row:last-child{border-bottom:none}
+.comp-row .cr-name{width:200px;font-size:12px;flex-shrink:0}
+.comp-row .cr-bar{flex:1;height:10px;background:#eee;border-radius:5px;position:relative;overflow:visible}
+.comp-row .cr-fill{height:100%;border-radius:5px;position:absolute;left:0;top:0}
+.comp-row .cr-target{position:absolute;top:-2px;width:3px;height:14px;background:var(--dk);border-radius:2px}
+.comp-row .cr-val{width:80px;text-align:right;font-size:11px;font-weight:600;flex-shrink:0}
+.gap-badge{background:#FCEBEB;color:#A32D2D;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr)}
+.kpi .kv{font-size:28px;font-weight:700}.kpi .kl{font-size:10px;color:var(--txs);margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+
+/* BACK BUTTON */
+.back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--txs);cursor:pointer;margin-bottom:16px;padding:6px 12px;border-radius:6px;border:none;background:none}
+.back:hover{color:var(--tx);background:#eee}
+
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;font-size:11px;color:var(--txs);padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--bdr)}
+.legend .lvl{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.l0{background:#f0ede5;color:#999}.l1{background:#FAEEDA;color:#854F0B}.l2{background:#E6F1FB;color:#185FA5}.l3{background:#EAF3DE;color:#3B6D11}.l4{background:#EEEDFE;color:#534AB7}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .container{padding:12px}
+  .grid{grid-template-columns:1fr}
+  .trail-stats{gap:16px}
+  .trail-stats .st .v{font-size:18px}
+  .comp-row .cr-name{width:120px;font-size:11px}
+  .topbar{padding:0 12px}
+  .topbar .uname{display:none}
+  .profile-header{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ LOGIN ══════ -->
+<div id="login-page">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="logo">ODARA</div>
+      <div class="sub">ACADEMY</div>
+      <input type="email" id="login-email" placeholder="Seu email">
+      <input type="password" id="login-pass" placeholder="Sua senha">
+      <button class="btn" onclick="doLogin()" id="login-btn">Entrar</button>
+      <div class="msg" id="login-msg"></div>
+      <div class="link" onclick="window.location.href='academy-gestao.html'">Acesso gerencial →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ APP ══════ -->
+<div id="app-wrap" style="display:none">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="logo">ODARA <span>ACADEMY</span></div>
+      <div class="nav-links">
+        <button class="nav-link on" onclick="showPage('home')">Minhas trilhas</button>
+        <button class="nav-link" onclick="showPage('perfil')">Meu perfil</button>
+      </div>
+    </div>
+    <div class="user-area">
+      <span class="uname" id="top-name"></span>
+      <div class="avatar" id="top-avatar"></div>
+      <button class="ubtn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- HOME -->
+    <div class="page on" id="pg-home">
+      <div id="home-loading" style="text-align:center;padding:60px;color:var(--txs)">Carregando trilhas...</div>
+      <div id="home-content" style="display:none"></div>
+    </div>
+
+    <!-- TRAIL DETAIL -->
+    <div class="page" id="pg-trail">
+      <button class="back" onclick="showPage('home')">← Voltar para trilhas</button>
+      <div id="trail-content"></div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="page" id="pg-perfil">
+      <div id="perfil-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://khqbimmcibutfrfmkoxr.supabase.co'
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo'
+const sb=supabase.createClient(SB_URL,SB_KEY)
+let ME=null
+
+const CAT_COLORS={
+  Operacional:['#FAEEDA','#EF9F27','#854F0B'],
+  Qualidade:['#EEEDFE','#7F77DD','#534AB7'],
+  BPF:['#EEEDFE','#7F77DD','#534AB7'],
+  Segurança:['#FCEBEB','#E24B4A','#A32D2D'],
+  Onboarding:['#E1F5EE','#1D9E75','#0F6E56']
+}
+const TIPO_ICO={video:'▶',texto:'📄',audio:'🎧',imagem:'🖼'}
+const TIPO_NOME={video:'Vídeo',texto:'Leitura',audio:'Áudio',imagem:'Imagem'}
+
+// ── AUTH ──
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim()
+  const pass=document.getElementById('login-pass').value
+  const msg=document.getElementById('login-msg')
+  if(!email){msg.textContent='Informe o email';msg.style.color='#E24B4A';return}
+  document.getElementById('login-btn').textContent='Entrando...'
+  if(pass){
+    const{error}=await sb.auth.signInWithPassword({email,password:pass})
+    if(error){msg.textContent=error.message;msg.style.color='#E24B4A';document.getElementById('login-btn').textContent='Entrar';return}
+  }else{
+    const{error}=await sb.auth.signInWithOtp({email})
+    if(error){msg.textContent=error.message;msg.style.color='#E24B4A';document.getElementById('login-btn').textContent='Entrar';return}
+    msg.textContent='Link enviado! Verifique seu email.';msg.style.color='#1D9E75';document.getElementById('login-btn').textContent='Entrar';return
+  }
+  await initApp()
+}
+
+async function doLogout(){await sb.auth.signOut();ME=null;location.reload()}
+
+async function checkAuth(){
+  const{data:{session}}=await sb.auth.getSession()
+  if(!session){
+    const hash=window.location.hash
+    if(hash&&hash.includes('access_token')){
+      const params=new URLSearchParams(hash.substring(1))
+      const at=params.get('access_token'),rt=params.get('refresh_token')
+      if(at&&rt){await sb.auth.setSession({access_token:at,refresh_token:rt});window.location.hash=''}
+    }
+    const{data:{session:s2}}=await sb.auth.getSession()
+    if(!s2) return false
+  }
+  return true
+}
+
+async function initApp(){
+  const ok=await checkAuth()
+  if(!ok) return
+  const{data:{user}}=await sb.auth.getUser()
+  // Busca perfil — fallback se join falhar
+  let profile=null
+  const{data:pj,error:ej}=await sb.from('profiles').select('*').eq('id',user.id).single()
+  if(!ej&&pj) profile=pj
+  if(!profile){document.getElementById('login-msg').textContent='Perfil não encontrado';document.getElementById('login-msg').style.color='#E24B4A';document.getElementById('login-btn').textContent='Entrar';return}
+  ME=profile
+  // Busca cargo e area
+  if(ME.cargo_id){const{data:c}=await sb.from('cargos').select('nome').eq('id',ME.cargo_id).single().catch(()=>({data:null}));if(c) ME.cargo_nome=c.nome}
+  if(ME.area_id){const{data:a}=await sb.from('areas').select('nome').eq('id',ME.area_id).single().catch(()=>({data:null}));if(a) ME.area_nome=a.nome}
+
+  document.getElementById('login-page').style.display='none'
+  document.getElementById('app-wrap').style.display='block'
+  document.getElementById('top-name').textContent=ME.nome
+  document.getElementById('top-avatar').textContent=(ME.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+  loadHome()
+}
+
+// ── NAVIGATION ──
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'))
+  document.getElementById('pg-'+id).classList.add('on')
+  document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('on'))
+  document.querySelectorAll('.nav-link').forEach(n=>{if(n.textContent.toLowerCase().includes(id==='home'?'trilha':'perfil')) n.classList.add('on')})
+  if(id==='perfil') loadPerfil()
+}
+
+// ── HOME ──
+async function loadHome(){
+  document.getElementById('home-loading').style.display='block'
+  document.getElementById('home-content').style.display='none'
+  // Busca trilhas atribuídas
+  const{data:atrib}=await sb.from('trilhas_atribuicoes').select('trilha_id').or(`profile_id.eq.${ME.id},area_id.eq.${ME.area_id||'x'},cargo_id.eq.${ME.cargo_id||'x'}`)
+  const ids=[...new Set((atrib||[]).map(a=>a.trilha_id))]
+  
+  // Se não tem atribuições, mostra todas as trilhas ativas
+  let trails=[]
+  if(ids.length){
+    const{data}=await sb.from('trilhas').select('*,progresso_trilhas!left(*)').in('id',ids).eq('ativo',true).order('categoria')
+    trails=(data||[]).map(t=>({...t,prog:(t.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)}))
+  }else{
+    const{data}=await sb.from('trilhas').select('*,progresso_trilhas!left(*)').eq('ativo',true).order('categoria')
+    trails=(data||[]).map(t=>({...t,prog:(t.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)}))
+  }
+
+  let h=''
+  const cats=[...new Set(trails.map(t=>t.categoria))]
+  const totalXp=trails.reduce((s,t)=>s+(t.xp_conclusao||0),0)
+  const concluidas=trails.filter(t=>t.prog&&t.prog.percentual>=100).length
+
+  h+=`<div class="kpi-grid">
+    <div class="kpi"><div class="kv">${trails.length}</div><div class="kl">Trilhas</div></div>
+    <div class="kpi"><div class="kv">${concluidas}</div><div class="kl">Concluídas</div></div>
+    <div class="kpi"><div class="kv">${totalXp}</div><div class="kl">XP disponível</div></div>
+    <div class="kpi"><div class="kv">${Math.round(trails.length?concluidas/trails.length*100:0)}%</div><div class="kl">Progresso</div></div>
+  </div>`
+
+  cats.forEach(cat=>{
+    const col=CAT_COLORS[cat]||CAT_COLORS.Operacional
+    h+=`<div class="sec-title">${cat}</div><div class="grid">`
+    trails.filter(t=>t.categoria===cat).forEach(t=>{
+      const pct=t.prog?Math.round(t.prog.percentual):0
+      h+=`<div class="card" onclick="openTrail('${t.id}')">
+        <div class="c-top">
+          <div class="c-ico" style="background:${col[0]};color:${col[2]}">${t.titulo.substring(0,2).toUpperCase()}</div>
+          <div style="flex:1"><div class="c-title">${t.titulo}</div><div class="c-cat">${cat}${t.obrigatoria?' · Obrigatória':''}</div></div>
+          <span class="pill" style="background:${pct>=100?'#EAF3DE;color:#3B6D11':pct>0?'#E6F1FB;color:#185FA5':'#f0ede5;color:#999'}">${pct>=100?'Concluída':pct>0?pct+'%':'Novo'}</span>
+        </div>
+        <div class="c-desc">${t.descricao||''}</div>
+        <div class="c-bar"><div class="c-fill" style="width:${pct}%;background:${col[1]}"></div></div>
+        <div class="c-meta"><span>${t.prazo_dias?t.prazo_dias+' dias':''}</span><span>${t.xp_conclusao} XP</span></div>
+      </div>`
+    })
+    h+='</div>'
+  })
+  if(!trails.length) h='<div style="text-align:center;padding:80px;color:var(--txs)"><div style="font-size:48px;margin-bottom:12px">📚</div><p>Nenhuma trilha disponível no momento</p></div>'
+  document.getElementById('home-content').innerHTML=h
+  document.getElementById('home-loading').style.display='none'
+  document.getElementById('home-content').style.display='block'
+}
+
+// ── TRAIL DETAIL ──
+async function openTrail(id){
+  showPage('trail')
+  const el=document.getElementById('trail-content')
+  el.innerHTML='<div style="text-align:center;padding:60px;color:var(--txs)">Carregando trilha...</div>'
+  const{data}=await sb.from('trilhas').select(`*,progresso_trilhas!left(*),modulos(id,titulo,ordem,ativo,conteudos(id,tipo,titulo,duracao_min,url,ordem,xp_conclusao,obrigatorio,subtipo,progresso_conteudos!left(*)),avaliacoes(id,titulo,nota_minima,xp_aprovacao,ordem))`).eq('id',id).single()
+  if(!data){el.innerHTML='<p>Trilha não encontrada</p>';return}
+  const col=CAT_COLORS[data.categoria]||CAT_COLORS.Operacional
+  const mods=(data.modulos||[]).sort((a,b)=>a.ordem-b.ordem)
+  let totalItems=0
+  mods.forEach(m=>{totalItems+=(m.conteudos?.length||0)+(m.avaliacoes?.length||0)})
+  const prog=(data.progresso_trilhas||[]).find(p=>p.profile_id===ME.id)
+  const pct=prog?Math.round(prog.percentual):0
+
+  let h=`<div class="trail-header">
+    <h1>${data.titulo}</h1>
+    <div class="desc">${data.descricao||''}</div>
+    <div class="trail-stats">
+      <div class="st"><div class="v">${mods.length}</div><div class="l">Módulos</div></div>
+      <div class="st"><div class="v">${totalItems}</div><div class="l">Conteúdos</div></div>
+      <div class="st"><div class="v">${data.xp_conclusao}</div><div class="l">XP total</div></div>
+      <div class="st"><div class="v">${pct}%</div><div class="l">Concluído</div></div>
+    </div>
+    <div class="trail-bar"><div class="fill" style="width:${pct}%"></div></div>
+  </div>`
+
+  mods.forEach((m,mi)=>{
+    const items=[...(m.conteudos||[]).sort((a,b)=>a.ordem-b.ordem),...(m.avaliacoes||[]).map(a=>({...a,tipo:'avaliacao',xp_conclusao:a.xp_aprovacao})).sort((a,b)=>a.ordem-b.ordem)]
+    const mXp=items.reduce((s,i)=>s+(i.xp_conclusao||0),0)
+    h+=`<div class="mod-block">
+      <div class="mod-head" onclick="toggleMod(this)">
+        <div class="num" style="background:${col[0]};color:${col[2]}">${mi+1}</div>
+        <div class="m-title">${m.titulo}</div>
+        <div class="m-xp">${mXp} XP</div>
+        <div class="arrow ${mi===0?'open':''}">▼</div>
+      </div>
+      <div class="mod-items ${mi===0?'open':''}">`
+    items.forEach(it=>{
+      const done=(it.progresso_conteudos||[]).some(p=>p.profile_id===ME.id&&p.concluido)
+      const st=it.subtipo||''
+      let ico=TIPO_ICO[it.tipo]||'📝',tname=TIPO_NOME[it.tipo]||it.tipo
+      if(st==='atividade_supervisionada'){ico='🔧';tname='Atividade supervisionada'}
+      if(st==='validacao_supervisor'){ico='✓';tname='Validação do supervisor'}
+      if(st==='validacao_facilitador'){ico='✓';tname='Validação do facilitador'}
+      if(it.tipo==='avaliacao'){ico='📝';tname='Teste / Quiz'}
+      h+=`<div class="item" onclick="markDone('${it.id}','${it.tipo}',this)">
+        <div class="i-ico" style="background:${col[0]};color:${col[2]}">${ico}</div>
+        <div class="i-info"><div class="i-name">${it.titulo}</div><div class="i-type">${tname}${it.duracao_min?' · '+it.duracao_min+' min':''}</div></div>
+        <div class="i-xp">+${it.xp_conclusao||0} XP</div>
+        <div class="i-check ${done?'done':''}">${done?'✓':''}</div>
+      </div>`
+    })
+    h+='</div></div>'
+  })
+
+  h+=`<div class="legend" style="margin-top:24px">
+    <span>▶ Vídeo</span><span>📄 Leitura</span><span>🎧 Áudio</span>
+    <span>📝 Teste / Quiz</span><span>🔧 Atividade supervisionada</span><span>✓ Validação</span>
+  </div>`
+
+  el.innerHTML=h
+}
+
+function toggleMod(el){
+  el.nextElementSibling.classList.toggle('open')
+  el.querySelector('.arrow').classList.toggle('open')
+}
+
+async function markDone(id,tipo,el){
+  if(tipo==='avaliacao') return
+  const{error}=await sb.from('progresso_conteudos').upsert({conteudo_id:id,profile_id:ME.id,concluido:true,concluido_em:new Date().toISOString()},{onConflict:'conteudo_id,profile_id'})
+  if(!error){
+    const chk=el.querySelector('.i-check')
+    chk.classList.add('done');chk.textContent='✓'
+  }
+}
+
+// ── PERFIL ──
+async function loadPerfil(){
+  const el=document.getElementById('perfil-content')
+  el.innerHTML='<div style="text-align:center;padding:60px;color:var(--txs)">Carregando perfil...</div>'
+  const ini=(ME.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+  const{data:mc}=await sb.from('matriz_competencias').select('*,competencias(nome,categoria)').eq('profile_id',ME.id)
+  const{data:score}=await sb.from('user_scores').select('*').eq('profile_id',ME.id).maybeSingle()
+  const matrix=mc||[]
+
+  let h=`<div class="profile-header">
+    <div class="p-avatar">${ini}</div>
+    <div><div class="p-name">${ME.nome}</div><div class="p-role">${ME.cargo_nome||''} ${ME.area_nome?'· '+ME.area_nome:''}</div></div>
+  </div>`
+
+  h+=`<div class="kpi-grid">
+    <div class="kpi"><div class="kv">${score?.xp_total||0}</div><div class="kl">XP total</div></div>
+    <div class="kpi"><div class="kv">${score?.nivel||1}</div><div class="kl">Nível</div></div>
+    <div class="kpi"><div class="kv">${score?.trilhas_concluidas||0}</div><div class="kl">Trilhas concluídas</div></div>
+  </div>`
+
+  h+='<div class="sec-title">Matriz de competências</div>'
+  if(!matrix.length){
+    h+='<div style="text-align:center;padding:40px;color:var(--txs)"><p>Nenhuma competência atribuída ainda.</p><p style="font-size:12px;margin-top:8px">O gestor precisa configurar sua matriz no painel gerencial.</p></div>'
+  }else{
+    const cats=[...new Set(matrix.map(m=>m.competencias?.categoria).filter(Boolean))]
+    cats.forEach(cat=>{
+      h+=`<div style="font-size:11px;font-weight:600;color:var(--txs);margin:20px 0 8px;text-transform:uppercase;letter-spacing:.5px">${cat}</div>`
+      matrix.filter(m=>m.competencias?.categoria===cat).forEach(m=>{
+        const pctL=Math.round((m.nivel_atual/4)*100)
+        const pctT=Math.round((m.nivel_desejado/4)*100)
+        const gap=m.nivel_desejado-m.nivel_atual
+        const barColor=gap>1?'var(--r)':gap>0?'var(--y)':'var(--g)'
+        h+=`<div class="comp-row">
+          <div class="cr-name">${m.competencias.nome}</div>
+          <div class="cr-bar"><div class="cr-fill" style="width:${pctL}%;background:${barColor}"></div><div class="cr-target" style="left:${pctT}%"></div></div>
+          <div class="cr-val">${m.nivel_atual}/4 ${gap>0?'<span class="gap-badge">gap '+gap+'</span>':''}</div>
+        </div>`
+      })
+    })
+    h+=`<div class="legend"><span><span class="lvl l0">0</span> Não conhece</span><span><span class="lvl l1">1</span> Conhece</span><span><span class="lvl l2">2</span> Aplica</span><span><span class="lvl l3">3</span> Aplica c/ autonomia</span><span><span class="lvl l4">4</span> Ensina</span>
+    <span style="margin-left:12px">Barra = nível atual | Marcador escuro = desejado</span></div>`
+  }
+  el.innerHTML=h
+}
+
+// ── INIT ──
+initApp()
+</script>
+</body>
+</html>
