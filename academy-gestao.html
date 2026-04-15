@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odara Academy — Gestão</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--y:#FFB81D;--yd:#E5A200;--r:#EE2737;--g:#1D9E75;--b:#378ADD;--p:#534AB7;--dk:#0C0C0C;--bg:#FAF8F4;--card:#FFF;--bdr:#E8E5DD;--tx:#1A1A1A;--txs:#777;--rd:12px;--sh:0 2px 8px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--tx)}
+
+.topbar{background:var(--dk);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.topbar .logo{font-size:18px;font-weight:800;color:var(--y)}
+.topbar .logo span{font-weight:400;font-size:12px;color:#666;margin-left:6px}
+.tright{display:flex;align-items:center;gap:10px}
+.tright .uname{color:#bbb;font-size:13px}
+.tright .ubtn{background:none;border:1px solid #555;color:#aaa;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer}
+.tright .ubtn:hover{border-color:var(--y);color:var(--y)}
+
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.side{width:230px;background:var(--card);border-right:1px solid var(--bdr);padding:12px 0;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.side .ss{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txs);padding:16px 20px 6px}
+.side .si{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--txs);cursor:pointer;border-left:3px solid transparent;transition:all .12s}
+.side .si:hover{background:var(--bg);color:var(--tx)}
+.side .si.on{background:#FFF8EA;color:var(--dk);font-weight:600;border-left-color:var(--y)}
+.side .si .icon{font-size:16px;width:20px;text-align:center}
+
+.main{flex:1;padding:28px 32px;max-width:1100px;overflow-x:auto}
+.pane{display:none}.pane.on{display:block}
+
+/* COMPONENTS */
+.sec{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txs);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border-radius:var(--rd);padding:20px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr)}
+.kpi .kv{font-size:26px;font-weight:700}
+.kpi .kl{font-size:10px;color:var(--txs);margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+
+.btn{border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s}
+.btn:active{transform:scale(.97)}
+.by{background:var(--y);color:var(--dk)}.by:hover{background:var(--yd)}
+.br{background:var(--r);color:#fff}
+.bo{background:none;border:1px solid var(--bdr);color:var(--tx)}.bo:hover{background:var(--bg)}
+.bg{background:var(--g);color:#fff}
+.bsm{padding:5px 10px;font-size:11px}
+.bbl{width:100%}
+
+.li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f0ede5;cursor:pointer;transition:background .1s;border-radius:8px;margin-bottom:2px}
+.li:hover{background:var(--bg)}
+.li .av{width:36px;height:36px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.li .av.sq{border-radius:10px}
+.li .inf{flex:1;min-width:0}
+.li .inf .n{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .inf .s{font-size:10px;color:var(--txs);margin-top:1px}
+.li .act{font-size:11px;color:var(--b);font-weight:500}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.mbg.on{display:flex}
+.mdl{background:var(--card);border-radius:16px;padding:28px;width:92%;max-width:600px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mdl h3{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.mdl .x{background:none;border:none;font-size:22px;cursor:pointer;color:var(--txs);padding:0 4px}
+.mdl .x:hover{color:var(--tx)}
+.fg{margin-bottom:14px}
+.fg label{font-size:11px;font-weight:600;color:var(--txs);display:block;margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;background:var(--bg);color:var(--tx);font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--y)}
+.fg textarea{resize:vertical;min-height:70px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* TRAIL EDITOR */
+.te-mod{background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px;border:1px solid var(--bdr)}
+.te-mod .te-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.te-mod .te-h .te-t{font-size:14px;font-weight:600}
+.te-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:4px;font-size:12px;background:var(--card);border:1px solid #eee}
+.te-item:hover{border-color:var(--bdr)}
+.te-item .te-ico{font-size:14px;flex-shrink:0}
+.te-item .te-info{flex:1;min-width:0}
+.te-item .te-name{font-weight:500}
+.te-item .te-meta{font-size:10px;color:var(--txs);margin-top:1px}
+.te-item .te-xp{font-size:10px;color:var(--txs);background:#f0ede5;padding:2px 6px;border-radius:6px}
+.te-item .te-del{color:var(--r);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
+.te-item .te-del:hover{background:#FCEBEB}
+.te-item .te-edit{color:var(--b);cursor:pointer;font-size:10px;padding:2px 6px;border-radius:4px}
+.te-item .te-edit:hover{background:#E6F1FB}
+
+/* ASSIGN */
+.a-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rd);padding:16px;margin-bottom:12px}
+.a-card h4{font-size:14px;font-weight:600;margin-bottom:10px}
+.a-chips{display:flex;flex-wrap:wrap;gap:6px}
+.a-chip{font-size:11px;padding:5px 12px;border-radius:16px;border:1px solid var(--bdr);cursor:pointer;transition:all .15s;user-select:none}
+.a-chip:hover{border-color:var(--y)}
+.a-chip.on{background:var(--y);color:var(--dk);border-color:var(--y);font-weight:600}
+
+/* HEATMAP */
+.hm-wrap{overflow-x:auto;margin-bottom:24px}
+.hm{border-collapse:separate;border-spacing:3px;font-size:11px}
+.hm th{padding:6px 4px;font-weight:600;color:var(--txs);font-size:9px;text-transform:uppercase;letter-spacing:.3px}
+.hm th.rot{writing-mode:vertical-lr;transform:rotate(180deg);text-align:left;height:120px;max-width:28px;white-space:nowrap;padding:4px 2px}
+.hm td{padding:0;text-align:center}
+.hm .name-cell{text-align:left;padding:4px 8px;font-weight:500;font-size:12px;white-space:nowrap;background:var(--card);border-radius:6px;border:1px solid #eee}
+.hm .name-cell .role{font-size:9px;font-weight:400;color:var(--txs);display:block}
+.hm-cell{width:36px;height:36px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:default;position:relative}
+.hm-cell .hm-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--dk);color:#fff;padding:6px 10px;border-radius:6px;font-size:10px;font-weight:400;white-space:nowrap;z-index:10;pointer-events:none}
+.hm-cell:hover .hm-tip{display:block}
+.hm-gap{background:var(--card);border:1px solid #eee;border-radius:6px;padding:2px 4px;font-size:9px;font-weight:600;color:var(--txs)}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--txs);padding:14px;background:var(--card);border-radius:8px;border:1px solid var(--bdr);margin-bottom:20px}
+.legend .swatch{width:18px;height:18px;border-radius:4px;display:inline-block;vertical-align:middle;margin-right:4px}
+
+@media(max-width:768px){.side{display:none}.main{padding:12px}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dk)">
+<div style="background:var(--card);border-radius:16px;padding:48px 40px;width:400px;text-align:center">
+  <div style="font-size:32px;font-weight:800;color:var(--y)">ODARA</div>
+  <div style="font-size:12px;color:var(--txs);margin-bottom:32px;letter-spacing:2px">GESTÃO ACADEMY</div>
+  <div class="fg"><input type="email" id="login-email" placeholder="Seu email"></div>
+  <div class="fg"><input type="password" id="login-pass" placeholder="Sua senha"></div>
+  <button class="btn by bbl" onclick="doLogin()" id="login-btn" style="padding:13px;font-size:15px">Entrar</button>
+  <div id="login-msg" style="font-size:12px;margin-top:12px;min-height:18px"></div>
+  <a href="index.html" style="font-size:11px;color:var(--b);margin-top:16px;display:inline-block;text-decoration:underline">← Visão do colaborador</a>
+</div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+<div class="topbar">
+  <div class="logo">ODARA <span>GESTÃO ACADEMY</span></div>
+  <div class="tright">
+    <span class="uname" id="t-name"></span>
+    <a href="index.html" class="ubtn">Visão colaborador</a>
+    <button class="ubtn" onclick="doLogout()">Sair</button>
+  </div>
+</div>
+<div class="layout">
+<div class="side" id="sidebar">
+  <div class="ss">Conteúdo</div>
+  <div class="si on" onclick="go('trilhas',this)"><span class="icon">📚</span>Trilhas</div>
+  <div class="si" onclick="go('atribuir',this)"><span class="icon">🎯</span>Atribuir trilhas</div>
+  <div class="ss">Pessoas</div>
+  <div class="si" onclick="go('pessoas',this)"><span class="icon">👥</span>Colaboradores</div>
+  <div class="ss">Competências</div>
+  <div class="si" onclick="go('matriz',this)"><span class="icon">📊</span>Matriz individual</div>
+  <div class="si" onclick="go('geral',this)"><span class="icon">🗺️</span>Mapa de competências</div>
+</div>
+<div class="main">
+  <div class="pane on" id="pn-trilhas"></div>
+  <div class="pane" id="pn-atribuir"></div>
+  <div class="pane" id="pn-pessoas"></div>
+  <div class="pane" id="pn-matriz"></div>
+  <div class="pane" id="pn-geral"></div>
+</div>
+</div>
+</div>
+
+<div class="mbg" id="mbg" onclick="if(event.target===this)closeModal()"><div class="mdl" id="mdl"></div></div>
+
+<script>
+const SB_URL='https://khqbimmcibutfrfmkoxr.supabase.co'
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo'
+const sb=supabase.createClient(SB_URL,SB_KEY)
+let ME=null
+
+const TIPOS=[
+  {v:'video',l:'Vídeo',i:'▶'},
+  {v:'texto',l:'Leitura / Texto',i:'📄'},
+  {v:'audio',l:'Áudio / Podcast',i:'🎧'},
+  {v:'pdf',l:'PDF / Documento',i:'📕'},
+  {v:'documento',l:'Word / Excel / Arquivo',i:'📎'},
+  {v:'link',l:'Link externo',i:'🔗'},
+  {v:'imagem',l:'Imagem / Infográfico',i:'🖼'},
+  {v:'apresentacao',l:'Apresentação / Slides',i:'📊'}
+]
+const SUBTIPOS=[
+  {v:'',l:'— Conteúdo padrão'},
+  {v:'atividade_supervisionada',l:'Atividade supervisionada'},
+  {v:'validacao_supervisor',l:'Validação do supervisor'},
+  {v:'validacao_facilitador',l:'Validação do facilitador'},
+  {v:'checklist',l:'Checklist prático'},
+  {v:'simulado',l:'Simulado / Exercício'}
+]
+function tipoIco(t){return(TIPOS.find(x=>x.v===t)||{i:'📝'}).i}
+function tipoLabel(t){return(TIPOS.find(x=>x.v===t)||{l:t}).l}
+
+// ── AUTH ──
+async function doLogin(){
+  const e=document.getElementById('login-email').value.trim(),p=document.getElementById('login-pass').value
+  const m=document.getElementById('login-msg')
+  if(!e){m.textContent='Informe o email';m.style.color='var(--r)';return}
+  document.getElementById('login-btn').textContent='Entrando...'
+  const{error}=await sb.auth.signInWithPassword({email:e,password:p})
+  if(error){m.textContent=error.message;m.style.color='var(--r)';document.getElementById('login-btn').textContent='Entrar';return}
+  await initApp()
+}
+async function doLogout(){await sb.auth.signOut();location.reload()}
+async function initApp(){
+  const{data:{session}}=await sb.auth.getSession()
+  if(!session){const h=window.location.hash;if(h&&h.includes('access_token')){const p=new URLSearchParams(h.substring(1));await sb.auth.setSession({access_token:p.get('access_token'),refresh_token:p.get('refresh_token')});window.location.hash=''}const{data:{session:s2}}=await sb.auth.getSession();if(!s2)return}
+  const{data:{user}}=await sb.auth.getUser()
+  const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single()
+  if(!p){document.getElementById('login-msg').textContent='Perfil não encontrado';document.getElementById('login-msg').style.color='var(--r)';document.getElementById('login-btn').textContent='Entrar';return}
+  ME=p;document.getElementById('login-page').style.display='none';document.getElementById('app').style.display='block'
+  document.getElementById('t-name').textContent=ME.nome;loadTrilhas()
+}
+
+// ── NAV ──
+function go(id,el){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));document.getElementById('pn-'+id).classList.add('on')
+  document.querySelectorAll('.si').forEach(s=>s.classList.remove('on'));if(el)el.classList.add('on')
+  if(id==='trilhas')loadTrilhas();if(id==='pessoas')loadPessoas();if(id==='atribuir')loadAtribuir();if(id==='matriz')loadMatriz();if(id==='geral')loadGeral()
+}
+function showModal(h){document.getElementById('mdl').innerHTML=h;document.getElementById('mbg').classList.add('on')}
+function closeModal(){document.getElementById('mbg').classList.remove('on')}
+
+// ══════ TRILHAS ══════
+async function loadTrilhas(){
+  const el=document.getElementById('pn-trilhas')
+  el.innerHTML='<div style="padding:40px;text-align:center;color:var(--txs)">Carregando...</div>'
+  const{data}=await sb.from('trilhas').select('*').order('categoria,titulo')
+  const trails=data||[]
+  // count modules and contents per trail
+  const tids=trails.map(t=>t.id)
+  let modCounts={},contCounts={}
+  if(tids.length){
+    const{data:mods}=await sb.from('modulos').select('id,trilha_id').in('trilha_id',tids)
+    ;(mods||[]).forEach(m=>{modCounts[m.trilha_id]=(modCounts[m.trilha_id]||0)+1})
+    const modIds=(mods||[]).map(m=>m.id)
+    if(modIds.length){
+      const{data:conts}=await sb.from('conteudos').select('id,modulo_id').in('modulo_id',modIds)
+      const modToTrail=Object.fromEntries((mods||[]).map(m=>[m.id,m.trilha_id]))
+      ;(conts||[]).forEach(c=>{const tid=modToTrail[c.modulo_id];contCounts[tid]=(contCounts[tid]||0)+1})
+    }
+  }
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div><h2 style="font-size:20px;font-weight:700">Trilhas de desenvolvimento</h2><p style="font-size:12px;color:var(--txs);margin-top:4px">${trails.length} trilhas cadastradas</p></div>
+    <button class="btn by" onclick="openTrailForm()">+ Nova trilha</button></div>`
+  const cats=[...new Set(trails.map(t=>t.categoria))]
+  cats.forEach(cat=>{
+    h+=`<div class="sec">${cat}</div>`
+    trails.filter(t=>t.categoria===cat).forEach(t=>{
+      const mc=modCounts[t.id]||0,cc=contCounts[t.id]||0
+      h+=`<div class="li" onclick="openTrailEditor('${t.id}')">
+        <div class="av sq" style="font-size:11px">${t.titulo.substring(0,2).toUpperCase()}</div>
+        <div class="inf"><div class="n">${t.titulo}</div><div class="s">${mc} módulos · ${cc} conteúdos · ${t.xp_conclusao||0} XP · ${t.prazo_dias||'—'} dias${t.obrigatoria?' · Obrigatória':''}</div></div>
+        <div class="act">editar →</div></div>`
+    })
+  })
+  el.innerHTML=h
+}
+
+function openTrailForm(t){
+  t=t||{titulo:'',descricao:'',categoria:'Operacional',obrigatoria:true,prazo_dias:30,nota_minima:70,xp_conclusao:200}
+  const isE=!!t.id
+  let h=`<h3>${isE?'Editar':'Nova'} trilha<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="fg"><label>Título</label><input id="tf-t" value="${t.titulo}"></div>
+    <div class="fg"><label>Descrição</label><textarea id="tf-d">${t.descricao||''}</textarea></div>
+    <div class="r2">
+      <div class="fg"><label>Categoria</label><select id="tf-c"><option ${t.categoria==='Operacional'?'selected':''}>Operacional</option><option ${t.categoria==='Qualidade'?'selected':''}>Qualidade</option><option ${t.categoria==='BPF'?'selected':''}>BPF</option><option ${t.categoria==='Segurança'?'selected':''}>Segurança</option><option ${t.categoria==='Onboarding'?'selected':''}>Onboarding</option></select></div>
+      <div class="fg"><label>Prazo (dias)</label><input type="number" id="tf-p" value="${t.prazo_dias||30}"></div></div>
+    <div class="r2">
+      <div class="fg"><label>Nota mínima (%)</label><input type="number" id="tf-n" value="${t.nota_minima||70}"></div>
+      <div class="fg"><label>XP conclusão</label><input type="number" id="tf-x" value="${t.xp_conclusao||200}"></div></div>
+    <div class="fg"><label><input type="checkbox" id="tf-o" ${t.obrigatoria?'checked':''}> Obrigatória para todos os atribuídos</label></div>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn by bbl" onclick="saveTrail('${t.id||''}')">${isE?'Salvar alterações':'Criar trilha'}</button>
+      ${isE?`<button class="btn br bsm" onclick="deleteTrail('${t.id}')">Excluir</button>`:''}</div>`
+  showModal(h)
+}
+
+async function saveTrail(id){
+  const o={titulo:document.getElementById('tf-t').value,descricao:document.getElementById('tf-d').value,categoria:document.getElementById('tf-c').value,prazo_dias:+document.getElementById('tf-p').value||30,nota_minima:+document.getElementById('tf-n').value||70,xp_conclusao:+document.getElementById('tf-x').value||200,obrigatoria:document.getElementById('tf-o').checked,ativo:true}
+  if(id){await sb.from('trilhas').update(o).eq('id',id)}else{await sb.from('trilhas').insert(o)}
+  closeModal();loadTrilhas()
+}
+async function deleteTrail(id){if(!confirm('Excluir trilha e todos seus módulos/conteúdos?'))return;await sb.from('trilhas').delete().eq('id',id);closeModal();loadTrilhas()}
+
+// ── TRAIL EDITOR (full) ──
+async function openTrailEditor(id){
+  const{data:t}=await sb.from('trilhas').select('*').eq('id',id).single()
+  if(!t)return
+  const{data:mods}=await sb.from('modulos').select('*').eq('trilha_id',id).order('ordem')
+  const modIds=(mods||[]).map(m=>m.id)
+  let conts=[],avals=[]
+  if(modIds.length){
+    const{data:c}=await sb.from('conteudos').select('*').in('modulo_id',modIds).order('ordem')
+    conts=c||[]
+    const{data:a}=await sb.from('avaliacoes').select('*').in('modulo_id',modIds).order('ordem')
+    avals=a||[]
+  }
+
+  let h=`<h3 style="margin-bottom:4px">${t.titulo}<button class="x" onclick="closeModal()">×</button></h3>
+    <p style="font-size:12px;color:var(--txs);margin-bottom:16px">${t.categoria} · ${t.xp_conclusao} XP · ${t.prazo_dias} dias${t.obrigatoria?' · Obrigatória':''}</p>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn bo bsm" onclick="closeModal();openTrailForm(${JSON.stringify(t).replace(/"/g,'&quot;')})">✏ Editar informações</button>
+      <button class="btn by bsm" onclick="openModForm('${t.id}')">+ Novo módulo</button>
+    </div>`
+
+  ;(mods||[]).forEach((m,mi)=>{
+    const mConts=conts.filter(c=>c.modulo_id===m.id)
+    const mAvals=avals.filter(a=>a.modulo_id===m.id)
+    h+=`<div class="te-mod"><div class="te-h">
+        <span class="te-t">${mi+1}. ${m.titulo}</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn bo bsm" onclick="openModForm('${t.id}',${JSON.stringify({id:m.id,titulo:m.titulo,ordem:m.ordem}).replace(/"/g,'&quot;')})">✏</button>
+          <button class="btn by bsm" onclick="openContentForm('${m.id}','${t.id}')">+ Conteúdo</button>
+          <button class="btn by bsm" onclick="openAvalForm('${m.id}','${t.id}')">+ Avaliação</button>
+          <button class="btn br bsm" onclick="delMod('${m.id}','${t.id}')">×</button>
+        </div></div>`
+    if(!mConts.length&&!mAvals.length) h+='<div style="font-size:11px;color:var(--txs);padding:10px;text-align:center;background:var(--card);border-radius:6px">Nenhum conteúdo neste módulo. Clique em "+ Conteúdo" para adicionar.</div>'
+    mConts.forEach(c=>{
+      const sub=c.subtipo?(' · '+(SUBTIPOS.find(s=>s.v===c.subtipo)||{l:c.subtipo}).l):''
+      h+=`<div class="te-item">
+        <span class="te-ico">${tipoIco(c.tipo)}</span>
+        <div class="te-info"><div class="te-name">${c.titulo}</div><div class="te-meta">${tipoLabel(c.tipo)}${sub} · ${c.duracao_min||0} min${c.url?' · <a href="'+c.url+'" target="_blank" style="color:var(--b)">link</a>':' · sem link'}</div></div>
+        <span class="te-xp">+${c.xp_conclusao||0} XP</span>
+        <span class="te-edit" onclick="openEditContent('${c.id}','${t.id}')">editar</span>
+        <span class="te-del" onclick="delContent('${c.id}','conteudo','${t.id}')">×</span></div>`
+    })
+    mAvals.forEach(a=>{
+      h+=`<div class="te-item">
+        <span class="te-ico">📝</span>
+        <div class="te-info"><div class="te-name">${a.titulo}</div><div class="te-meta">Avaliação · Nota mín: ${a.nota_minima||70}%</div></div>
+        <span class="te-xp">+${a.xp_aprovacao||0} XP</span>
+        <span class="te-del" onclick="delContent('${a.id}','avaliacao','${t.id}')">×</span></div>`
+    })
+    h+='</div>'
+  })
+  if(!(mods||[]).length) h+='<div style="text-align:center;padding:30px;color:var(--txs);background:var(--bg);border-radius:8px">Nenhum módulo. Clique em "+ Novo módulo" para estruturar esta trilha.</div>'
+  showModal(h)
+}
+
+function openModForm(tid,m){
+  m=m||{titulo:'',ordem:1};const isE=!!m.id
+  let h=`<h3>${isE?'Editar':'Novo'} módulo<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="fg"><label>Título do módulo</label><input id="mf-t" value="${m.titulo}"></div>
+    <div class="fg"><label>Ordem de exibição</label><input type="number" id="mf-o" value="${m.ordem||1}"></div>
+    <button class="btn by bbl" onclick="saveMod('${tid}','${m.id||''}')">${isE?'Salvar':'Criar módulo'}</button>`
+  showModal(h)
+}
+async function saveMod(tid,mid){
+  const o={trilha_id:tid,titulo:document.getElementById('mf-t').value,ordem:+document.getElementById('mf-o').value||1,ativo:true}
+  if(mid)await sb.from('modulos').update(o).eq('id',mid);else await sb.from('modulos').insert(o)
+  closeModal();openTrailEditor(tid)
+}
+async function delMod(mid,tid){if(!confirm('Excluir módulo e conteúdos?'))return;await sb.from('modulos').delete().eq('id',mid);openTrailEditor(tid)}
+
+// ── CONTENT FORM (expanded) ──
+function openContentForm(mid,tid,edit){
+  const c=edit||{titulo:'',tipo:'video',subtipo:'',duracao_min:10,xp_conclusao:20,url:'',ordem:1,obrigatorio:true}
+  const isE=!!edit?.id
+  let h=`<h3>${isE?'Editar':'Novo'} conteúdo<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="fg"><label>Título</label><input id="cf-t" value="${c.titulo}"></div>
+    <div class="r2">
+      <div class="fg"><label>Tipo de conteúdo</label><select id="cf-tipo">${TIPOS.map(t=>`<option value="${t.v}" ${c.tipo===t.v?'selected':''}>${t.i} ${t.l}</option>`).join('')}</select></div>
+      <div class="fg"><label>Natureza / Subtipo</label><select id="cf-sub">${SUBTIPOS.map(s=>`<option value="${s.v}" ${c.subtipo===s.v?'selected':''}>${s.l}</option>`).join('')}</select></div></div>
+    <div class="fg"><label>URL / Link do recurso (vídeo, PDF, Drive, site, etc.)</label><input id="cf-url" value="${c.url||''}" placeholder="https://drive.google.com/... ou https://youtube.com/..."></div>
+    <div class="r3">
+      <div class="fg"><label>Duração (min)</label><input type="number" id="cf-min" value="${c.duracao_min||10}"></div>
+      <div class="fg"><label>XP ao concluir</label><input type="number" id="cf-xp" value="${c.xp_conclusao||20}"></div>
+      <div class="fg"><label>Ordem</label><input type="number" id="cf-ord" value="${c.ordem||1}"></div></div>
+    <div class="fg"><label><input type="checkbox" id="cf-obr" ${c.obrigatorio!==false?'checked':''}> Obrigatório para conclusão do módulo</label></div>
+    <p style="font-size:11px;color:var(--txs);margin-bottom:16px">Tipos suportados: vídeos (YouTube, Vimeo), PDFs, documentos Word/Excel, links do Google Drive, apresentações, imagens, áudios, podcasts, ou qualquer URL acessível.</p>
+    <button class="btn by bbl" onclick="saveContent('${mid}','${tid}','${c.id||''}')">${isE?'Salvar':'Adicionar conteúdo'}</button>`
+  showModal(h)
+}
+
+async function saveContent(mid,tid,cid){
+  const o={modulo_id:mid,titulo:document.getElementById('cf-t').value,tipo:document.getElementById('cf-tipo').value,subtipo:document.getElementById('cf-sub').value||null,url:document.getElementById('cf-url').value||null,duracao_min:+document.getElementById('cf-min').value||0,xp_conclusao:+document.getElementById('cf-xp').value||20,ordem:+document.getElementById('cf-ord').value||1,obrigatorio:document.getElementById('cf-obr').checked}
+  if(cid){await sb.from('conteudos').update(o).eq('id',cid)}else{await sb.from('conteudos').insert(o)}
+  closeModal();openTrailEditor(tid)
+}
+
+async function openEditContent(cid,tid){
+  const{data:c}=await sb.from('conteudos').select('*').eq('id',cid).single()
+  if(!c)return
+  openContentForm(c.modulo_id,tid,c)
+}
+
+function openAvalForm(mid,tid){
+  let h=`<h3>Nova avaliação<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="fg"><label>Título</label><input id="af-t" placeholder="Ex: Quiz — fundamentos da flowpack"></div>
+    <div class="r3">
+      <div class="fg"><label>Nota mínima (%)</label><input type="number" id="af-n" value="70"></div>
+      <div class="fg"><label>XP aprovação</label><input type="number" id="af-x" value="30"></div>
+      <div class="fg"><label>Ordem</label><input type="number" id="af-o" value="99"></div></div>
+    <button class="btn by bbl" onclick="saveAval('${mid}','${tid}')">Adicionar avaliação</button>`
+  showModal(h)
+}
+async function saveAval(mid,tid){
+  await sb.from('avaliacoes').insert({modulo_id:mid,titulo:document.getElementById('af-t').value,nota_minima:+document.getElementById('af-n').value||70,xp_aprovacao:+document.getElementById('af-x').value||30,ordem:+document.getElementById('af-o').value||99})
+  closeModal();openTrailEditor(tid)
+}
+
+async function delContent(id,tipo,tid){
+  if(!confirm('Excluir?'))return
+  if(tipo==='avaliacao')await sb.from('avaliacoes').delete().eq('id',id);else await sb.from('conteudos').delete().eq('id',id)
+  openTrailEditor(tid)
+}
+
+// ══════ PESSOAS ══════
+async function loadPessoas(){
+  const el=document.getElementById('pn-pessoas')
+  el.innerHTML='<div style="padding:40px;text-align:center;color:var(--txs)">Carregando...</div>'
+  const{data}=await sb.from('profiles').select('*').order('nome')
+  const ppl=data||[]
+  const{data:cargos}=await sb.from('cargos').select('id,nome')
+  const{data:areas}=await sb.from('areas').select('id,nome')
+  const cm=Object.fromEntries((cargos||[]).map(c=>[c.id,c.nome]))
+  const am=Object.fromEntries((areas||[]).map(a=>[a.id,a.nome]))
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div><h2 style="font-size:20px;font-weight:700">Colaboradores</h2><p style="font-size:12px;color:var(--txs);margin-top:4px">${ppl.length} cadastrados</p></div>
+    <button class="btn by" onclick="openPersonForm()">+ Novo colaborador</button></div>`
+  ppl.forEach(p=>{
+    const ini=(p.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
+    h+=`<div class="li" onclick="openPersonForm(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="av">${ini}</div>
+      <div class="inf"><div class="n">${p.nome||'—'}</div><div class="s">${cm[p.cargo_id]||'—'} · ${am[p.area_id]||'—'} · ${p.role||'colaborador'} · Turno ${p.turno||'—'}</div></div>
+      <div class="act">editar →</div></div>`
+  })
+  el.innerHTML=h
+}
+
+async function openPersonForm(p){
+  p=p||{nome:'',matricula:'',role:'colaborador',turno:'A'};const isE=!!p.id
+  const{data:areas}=await sb.from('areas').select('id,nome')
+  const{data:cargos}=await sb.from('cargos').select('id,nome')
+  let h=`<h3>${isE?'Editar':'Novo'} colaborador<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="fg"><label>Nome completo</label><input id="pf-n" value="${p.nome||''}"></div>
+    <div class="r2"><div class="fg"><label>Matrícula</label><input id="pf-m" value="${p.matricula||''}"></div><div class="fg"><label>Turno</label><select id="pf-tu"><option ${p.turno==='A'?'selected':''}>A</option><option ${p.turno==='B'?'selected':''}>B</option><option ${p.turno==='C'?'selected':''}>C</option></select></div></div>
+    <div class="r2"><div class="fg"><label>Perfil de acesso</label><select id="pf-r"><option value="colaborador" ${p.role==='colaborador'?'selected':''}>Colaborador</option><option value="gestor" ${p.role==='gestor'?'selected':''}>Gestor</option><option value="admin" ${p.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label>Área</label><select id="pf-a"><option value="">—</option>${(areas||[]).map(a=>`<option value="${a.id}" ${p.area_id===a.id?'selected':''}>${a.nome}</option>`).join('')}</select></div></div>
+    <div class="fg"><label>Cargo</label><select id="pf-c"><option value="">—</option>${(cargos||[]).map(c=>`<option value="${c.id}" ${p.cargo_id===c.id?'selected':''}>${c.nome}</option>`).join('')}</select></div>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn by bbl" onclick="savePerson('${p.id||''}')">${isE?'Salvar':'Criar'}</button>
+      ${isE?`<button class="btn br bsm" onclick="delPerson('${p.id}')">Excluir</button>`:''}</div>`
+  showModal(h)
+}
+async function savePerson(id){
+  const o={nome:document.getElementById('pf-n').value,matricula:document.getElementById('pf-m').value,role:document.getElementById('pf-r').value,turno:document.getElementById('pf-tu').value,area_id:document.getElementById('pf-a').value||null,cargo_id:document.getElementById('pf-c').value||null}
+  if(id)await sb.from('profiles').update(o).eq('id',id);else await sb.from('profiles').insert(o)
+  closeModal();loadPessoas()
+}
+async function delPerson(id){if(!confirm('Excluir?'))return;await sb.from('profiles').delete().eq('id',id);closeModal();loadPessoas()}
+
+// ══════ ATRIBUIR ══════
+async function loadAtribuir(){
+  const el=document.getElementById('pn-atribuir')
+  el.innerHTML='<div style="padding:40px;text-align:center;color:var(--txs)">Carregando...</div>'
+  const{data:ppl}=await sb.from('profiles').select('id,nome').order('nome')
+  const{data:trails}=await sb.from('trilhas').select('id,titulo,categoria').eq('ativo',true).order('categoria,titulo')
+  const{data:assigns}=await sb.from('trilhas_atribuicoes').select('*')
+  const aSet=new Set((assigns||[]).map(a=>a.profile_id+'|'+a.trilha_id))
+  let h=`<div style="margin-bottom:20px"><h2 style="font-size:20px;font-weight:700">Atribuir trilhas aos colaboradores</h2>
+    <p style="font-size:12px;color:var(--txs);margin-top:4px">Clique nas trilhas para ativar/desativar para cada pessoa. Trilhas ativas aparecem em destaque.</p></div>`
+  ;(ppl||[]).forEach(p=>{
+    h+=`<div class="a-card"><h4>${p.nome}</h4><div class="a-chips">`
+    ;(trails||[]).forEach(t=>{
+      const isOn=aSet.has(p.id+'|'+t.id)
+      h+=`<div class="a-chip ${isOn?'on':''}" onclick="toggleAssign('${p.id}','${t.id}',this)">${t.titulo}</div>`
+    })
+    h+='</div></div>'
+  })
+  el.innerHTML=h
+}
+async function toggleAssign(pid,tid,el){
+  if(el.classList.contains('on')){
+    await sb.from('trilhas_atribuicoes').delete().eq('profile_id',pid).eq('trilha_id',tid);el.classList.remove('on')
+  }else{
+    await sb.from('trilhas_atribuicoes').insert({profile_id:pid,trilha_id:tid});el.classList.add('on')
+    // cria notificação
+    try{await sb.from('notificacoes').insert({profile_id:pid,titulo:'Nova trilha atribuída',mensagem:'A trilha foi atribuída ao seu perfil. Acesse suas trilhas para começar.',tipo:'atribuicao',lida:false})}catch(e){}
+  }
+}
+
+// ══════ MATRIZ INDIVIDUAL ══════
+async function loadMatriz(){
+  const el=document.getElementById('pn-matriz')
+  el.innerHTML='<div style="padding:40px;text-align:center;color:var(--txs)">Carregando...</div>'
+  const{data:ppl}=await sb.from('profiles').select('id,nome').order('nome')
+  const{data:comp}=await sb.from('competencias').select('*').order('categoria,nome')
+  let h=`<h2 style="font-size:20px;font-weight:700;margin-bottom:16px">Matriz de competências individual</h2>
+    <div class="fg" style="max-width:400px"><label>Selecione o colaborador</label><select id="mx-sel" onchange="showMx()"><option value="">— Selecione —</option>${(ppl||[]).map(p=>`<option value="${p.id}">${p.nome}</option>`).join('')}</select></div>
+    <div id="mx-view"></div>`
+  el.innerHTML=h
+  window._COMP=comp||[]
+}
+async function showMx(){
+  const pid=document.getElementById('mx-sel').value,el=document.getElementById('mx-view')
+  if(!pid){el.innerHTML='';return}
+  el.innerHTML='<div style="padding:20px;text-align:center;color:var(--txs)">Carregando...</div>'
+  const{data:mc}=await sb.from('matriz_competencias').select('*').eq('profile_id',pid)
+  const matrix=mc||[];const comp=window._COMP
+  const cats=[...new Set(comp.map(c=>c.categoria))]
+  let tg=0,h=''
+  cats.forEach(cat=>{
+    h+=`<div class="sec">${cat}</div>`
+    comp.filter(c=>c.categoria===cat).forEach(c=>{
+      const m=matrix.find(x=>x.competencia_id===c.id)
+      const a=m?.nivel_atual||0,d=m?.nivel_desejado||0,g=Math.max(0,d-a);tg+=g
+      h+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0ede5">
+        <span style="font-size:12px;flex:1">${c.nome}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="text-align:center"><div style="font-size:9px;color:var(--txs)">Atual</div><select style="width:55px;font-size:12px;padding:4px;border-radius:6px;border:1px solid var(--bdr)" onchange="updMx('${pid}','${c.id}','nivel_atual',this.value)">${[0,1,2,3,4].map(n=>`<option value="${n}" ${a===n?'selected':''}>${n}</option>`).join('')}</select></div>
+          <span style="color:var(--txs);margin-top:10px">→</span>
+          <div style="text-align:center"><div style="font-size:9px;color:var(--txs)">Desejado</div><select style="width:55px;font-size:12px;padding:4px;border-radius:6px;border:1px solid var(--bdr)" onchange="updMx('${pid}','${c.id}','nivel_desejado',this.value)">${[0,1,2,3,4].map(n=>`<option value="${n}" ${d===n?'selected':''}>${n}</option>`).join('')}</select></div>
+          ${g>0?`<span style="background:#FCEBEB;color:#A32D2D;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;margin-top:10px">gap ${g}</span>`:a>0&&g===0?'<span style="color:var(--g);margin-top:10px">✓</span>':''}
+        </div></div>`
+    })
+  })
+  h+=`<div style="margin-top:16px;padding:16px;background:var(--card);border-radius:8px;border:1px solid var(--bdr);font-size:13px"><strong>Gap total: ${tg}</strong> — 0=Não conhece · 1=Conhece · 2=Aplica · 3=Aplica c/ autonomia · 4=Ensina</div>`
+  el.innerHTML=h
+}
+async function updMx(pid,cid,field,val){
+  const{data:ex}=await sb.from('matriz_competencias').select('id').eq('profile_id',pid).eq('competencia_id',cid).maybeSingle()
+  if(ex){await sb.from('matriz_competencias').update({[field]:+val}).eq('id',ex.id)}
+  else{await sb.from('matriz_competencias').insert({profile_id:pid,competencia_id:cid,nivel_atual:0,nivel_desejado:0,[field]:+val})}
+}
+
+// ══════ VISÃO GERAL — HEATMAP ══════
+async function loadGeral(){
+  const el=document.getElementById('pn-geral')
+  el.innerHTML='<div style="padding:40px;text-align:center;color:var(--txs)">Carregando mapa de competências...</div>'
+  const{data:ppl}=await sb.from('profiles').select('id,nome').order('nome')
+  const{data:comp}=await sb.from('competencias').select('*').order('categoria,nome')
+  const{data:allMc}=await sb.from('matriz_competencias').select('*')
+  const people=ppl||[],comps=comp||[],mc=allMc||[]
+  const{data:cargos}=await sb.from('cargos').select('id,nome')
+  const{data:areas}=await sb.from('areas').select('id,nome')
+  const cm=Object.fromEntries((cargos||[]).map(c=>[c.id,c.nome]))
+
+  // KPIs
+  let tGaps=0,critPpl=0,profCount=0,totalCells=0
+  people.forEach(p=>{let hasCrit=false;comps.forEach(c=>{const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id);const a=m?.nivel_atual||0,d=m?.nivel_desejado||0,g=Math.max(0,d-a);tGaps+=g;totalCells++;if(g>=2)hasCrit=true;if(a>=d&&d>0)profCount++});if(hasCrit)critPpl++})
+
+  let h=`<h2 style="font-size:20px;font-weight:700;margin-bottom:4px">Mapa de competências</h2>
+    <p style="font-size:12px;color:var(--txs);margin-bottom:20px">Visão geral de todos os colaboradores. Quanto mais escura a célula, maior o gap. Cores verdes indicam proficiência.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="kv">${people.length}</div><div class="kl">Colaboradores</div></div>
+      <div class="kpi"><div class="kv">${comps.length}</div><div class="kl">Competências</div></div>
+      <div class="kpi"><div class="kv">${tGaps}</div><div class="kl">Gaps totais</div></div>
+      <div class="kpi"><div class="kv" style="color:var(--r)">${critPpl}</div><div class="kl">Com gap crítico</div></div>
+      <div class="kpi"><div class="kv">${totalCells?Math.round(profCount/totalCells*100):0}%</div><div class="kl">Proficiência geral</div></div>
+    </div>`
+
+  // Legend
+  h+=`<div class="legend">
+    <span><span class="swatch" style="background:#C8E6C9"></span> Proficiente</span>
+    <span><span class="swatch" style="background:#E8F5E9"></span> Gap 0</span>
+    <span><span class="swatch" style="background:#FFF9C4"></span> Gap 1</span>
+    <span><span class="swatch" style="background:#FFCC80"></span> Gap 2</span>
+    <span><span class="swatch" style="background:#EF9A9A"></span> Gap 3</span>
+    <span><span class="swatch" style="background:#E53935;color:#fff;padding:1px 4px;border-radius:3px"></span> Gap 4</span>
+    <span style="margin-left:8px;color:var(--txs)">Número = nível atual (0-4)</span>
+  </div>`
+
+  // Heatmap by category
+  const cats=[...new Set(comps.map(c=>c.categoria))]
+  cats.forEach(cat=>{
+    const catComps=comps.filter(c=>c.categoria===cat)
+    h+=`<div class="sec">${cat}</div><div class="hm-wrap"><table class="hm"><thead><tr><th style="min-width:160px"></th>`
+    catComps.forEach(c=>{
+      const short=c.nome.length>20?c.nome.substring(0,18)+'…':c.nome
+      h+=`<th class="rot" title="${c.nome}">${short}</th>`
+    })
+    h+=`<th class="rot">Total gaps</th></tr></thead><tbody>`
+    people.forEach(p=>{
+      let pGaps=0
+      h+=`<tr><td class="name-cell">${p.nome}<span class="role">${cm[p.cargo_id]||''}</span></td>`
+      catComps.forEach(c=>{
+        const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id)
+        const a=m?.nivel_atual||0,d=m?.nivel_desejado||0,g=Math.max(0,d-a);pGaps+=g
+        let bg,fg
+        if(d===0&&a===0){bg='#F5F5F5';fg='#bbb'}
+        else if(g===0){bg=a>=3?'#C8E6C9':'#E8F5E9';fg=a>=3?'#2E7D32':'#4CAF50'}
+        else if(g===1){bg='#FFF9C4';fg='#F57F17'}
+        else if(g===2){bg='#FFCC80';fg='#E65100'}
+        else if(g===3){bg='#EF9A9A';fg='#C62828'}
+        else{bg='#E53935';fg='#FFF'}
+        h+=`<td><div class="hm-cell" style="background:${bg};color:${fg}">${a}<div class="hm-tip">${c.nome}: atual ${a} → desejado ${d}${g>0?' (gap '+g+')':' ✓'}</div></div></td>`
+      })
+      h+=`<td><div class="hm-gap" style="${pGaps>3?'background:#FCEBEB;color:#A32D2D':''}">${pGaps}</div></td></tr>`
+    })
+    h+='</tbody></table></div>'
+  })
+
+  // Summary: biggest gaps
+  h+=`<div class="sec">Maiores gaps por competência</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-bottom:24px">`
+  comps.forEach(c=>{
+    let totalG=0,count=0
+    people.forEach(p=>{const m=mc.find(x=>x.profile_id===p.id&&x.competencia_id===c.id);const g=Math.max(0,(m?.nivel_desejado||0)-(m?.nivel_atual||0));totalG+=g;if(g>0)count++})
+    if(totalG===0)return
+    const pct=people.length?Math.round(count/people.length*100):0
+    const barColor=pct>60?'var(--r)':pct>30?'var(--y)':'var(--g)'
+    h+=`<div style="background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px">
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px">${c.nome}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px"></div></div>
+        <span style="font-size:11px;font-weight:600;color:${barColor}">${pct}%</span>
+      </div>
+      <div style="font-size:10px;color:var(--txs);margin-top:4px">${count}/${people.length} pessoas com gap · Total: ${totalG}</div>
+    </div>`
+  })
+  h+='</div>'
+
+  el.innerHTML=h
+}
+
+// ── INIT ──
+initApp()
+</script>
+</body>
+</html>
