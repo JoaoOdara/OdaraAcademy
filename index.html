@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odara Academy</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--y:#FFB81D;--yd:#E5A200;--r:#EE2737;--g:#1D9E75;--b:#378ADD;--p:#534AB7;--dk:#0C0C0C;--bg:#FAF8F4;--card:#FFF;--bdr:#E8E5DD;--tx:#1A1A1A;--txs:#777;--rd:12px;--sh:0 2px 8px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--tx)}
+
+/* TOPBAR */
+.topbar{background:var(--dk);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.topbar .logo{font-size:18px;font-weight:800;color:var(--y)}
+.topbar .logo span{font-weight:400;font-size:12px;color:#666;margin-left:6px}
+.tnav{display:flex;gap:2px;margin-left:20px}
+.tnav button{background:none;border:none;color:#888;font-size:12px;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500}
+.tnav button.on{background:rgba(255,184,29,.15);color:var(--y)}
+.tnav button:hover{color:var(--y)}
+.tright{display:flex;align-items:center;gap:10px}
+.tright .uname{color:#bbb;font-size:13px}
+.tright .notif-btn{position:relative;background:none;border:none;font-size:18px;cursor:pointer;color:#888;padding:4px 8px}
+.tright .notif-btn:hover{color:var(--y)}
+.tright .ndot{position:absolute;top:0;right:2px;width:8px;height:8px;border-radius:50%;background:var(--r);display:none}
+.tright .avatar{width:32px;height:32px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.tright .ubtn{background:none;border:1px solid #555;color:#aaa;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer}
+.tright .ubtn:hover{border-color:var(--y);color:var(--y)}
+
+.wrap{max-width:1100px;margin:0 auto;padding:24px}
+.page{display:none}.page.on{display:block}
+
+/* LOGIN */
+.login-bg{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dk)}
+.login-card{background:var(--card);border-radius:16px;padding:48px 40px;width:400px;text-align:center}
+.login-card h1{font-size:32px;font-weight:800;color:var(--y)}
+.login-card .ls{font-size:12px;color:var(--txs);margin-bottom:32px;letter-spacing:2px}
+.login-card input{width:100%;padding:12px 14px;border:1px solid var(--bdr);border-radius:8px;font-size:14px;margin-bottom:12px;background:var(--bg)}
+.login-card input:focus{outline:none;border-color:var(--y)}
+.login-card .lbtn{width:100%;padding:13px;background:var(--y);color:var(--dk);border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+.login-card .lbtn:hover{background:var(--yd)}
+.login-card .lmsg{font-size:12px;margin-top:12px;min-height:18px}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border-radius:var(--rd);padding:20px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr)}
+.kpi .kv{font-size:26px;font-weight:700}
+.kpi .kl{font-size:10px;color:var(--txs);margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.sec{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txs);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+
+/* TRAIL CARD */
+.tc{background:var(--card);border-radius:var(--rd);box-shadow:var(--sh);padding:20px;border:1px solid var(--bdr);cursor:pointer;transition:all .2s;position:relative}
+.tc:hover{border-color:var(--yd);box-shadow:0 4px 20px rgba(0,0,0,.1);transform:translateY(-1px)}
+.tc .tt{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.tc .ti{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.tc .tn{font-size:15px;font-weight:600;line-height:1.3}
+.tc .ts{font-size:11px;color:var(--txs);margin-top:2px}
+.tc .td{font-size:12px;color:var(--txs);margin-bottom:12px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tc .tb{height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.tc .tf{height:100%;border-radius:3px}
+.tc .tm{display:flex;justify-content:space-between;font-size:11px;color:var(--txs);margin-top:6px}
+.pill{font-size:10px;padding:3px 10px;border-radius:12px;font-weight:600}
+.otag{position:absolute;top:12px;right:12px;font-size:9px;padding:2px 8px;border-radius:6px;background:#FEF3CD;color:#856404;font-weight:600}
+
+/* TRAIL DETAIL */
+.thero{background:var(--dk);border-radius:var(--rd);padding:32px;color:#fff;margin-bottom:24px}
+.thero h1{font-size:22px;font-weight:700;color:var(--y)}
+.thero .tdesc{font-size:13px;color:#aaa;margin-top:8px;line-height:1.6}
+.thero .ttags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.thero .ttag{font-size:10px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc}
+.tstats{display:flex;gap:28px;margin-top:20px}
+.tstats .st .sv{font-size:22px;font-weight:700}
+.tstats .st .sl{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.tpbar{height:8px;background:#333;border-radius:4px;margin-top:16px;overflow:hidden}
+.tpbar .tpf{height:100%;background:var(--y);border-radius:4px}
+
+/* MODULE */
+.mblock{background:var(--card);border-radius:var(--rd);border:1px solid var(--bdr);margin-bottom:12px;overflow:hidden}
+.mhead{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;transition:background .1s}
+.mhead:hover{background:var(--bg)}
+.mhead .mn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.mhead .mt{font-size:14px;font-weight:600;flex:1}
+.mhead .mx{font-size:11px;color:var(--txs)}
+.mhead .ma{font-size:12px;color:var(--txs);transition:transform .2s}
+.mhead .ma.open{transform:rotate(180deg)}
+.mitems{display:none;border-top:1px solid var(--bdr)}
+.mitems.open{display:block}
+.mi{display:flex;align-items:center;gap:12px;padding:14px 20px 14px 64px;border-bottom:1px solid #f5f3ee;cursor:pointer;transition:background .1s}
+.mi:last-child{border-bottom:none}
+.mi:hover{background:var(--bg)}
+.mi .mii{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.mi .min{flex:1}
+.mi .mit{font-size:13px;font-weight:500}
+.mi .mis{font-size:10px;color:var(--txs);margin-top:1px}
+.mi .mix{font-size:10px;color:var(--txs);background:#f5f3ee;padding:3px 8px;border-radius:8px}
+.mi .mic{width:24px;height:24px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
+.mi .mic.done{background:var(--g);border-color:var(--g);color:#fff}
+
+/* BACK */
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txs);cursor:pointer;margin-bottom:16px;padding:6px 0;border:none;background:none}
+.back:hover{color:var(--tx)}
+
+/* PROFILE */
+.phero{background:var(--dk);border-radius:var(--rd);padding:32px;color:#fff;margin-bottom:24px;display:flex;align-items:center;gap:20px}
+.phero .pa{width:64px;height:64px;border-radius:50%;background:var(--y);color:var(--dk);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0}
+.phero .pn{font-size:20px;font-weight:700;color:var(--y)}
+.phero .pr{font-size:13px;color:#aaa;margin-top:4px}
+
+/* COMPETENCE BARS */
+.crow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0ede5}
+.crow:last-child{border-bottom:none}
+.crow .cn{width:180px;font-size:12px;flex-shrink:0}
+.crow .cbar{flex:1;height:12px;background:#eee;border-radius:6px;position:relative;overflow:visible}
+.crow .cfill{height:100%;border-radius:6px;position:absolute;left:0;top:0;transition:width .4s}
+.crow .ctarget{position:absolute;top:-2px;width:3px;height:16px;background:var(--dk);border-radius:2px}
+.crow .cval{width:90px;text-align:right;font-size:11px;font-weight:600;flex-shrink:0}
+.gbadge{background:#FCEBEB;color:#A32D2D;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600;margin-left:4px}
+
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;font-size:11px;color:var(--txs);padding:14px;background:var(--card);border-radius:8px;border:1px solid var(--bdr)}
+.legend .lv{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.l0{background:#f0ede5;color:#999}.l1{background:#FAEEDA;color:#854F0B}.l2{background:#E6F1FB;color:#185FA5}.l3{background:#EAF3DE;color:#3B6D11}.l4{background:#EEEDFE;color:#534AB7}
+
+/* NOTIFICATIONS */
+.noti-panel{display:none;position:absolute;top:56px;right:24px;width:360px;max-height:400px;overflow-y:auto;background:var(--card);border-radius:var(--rd);box-shadow:0 8px 30px rgba(0,0,0,.15);border:1px solid var(--bdr);z-index:100}
+.noti-panel.on{display:block}
+.noti-panel .nh{padding:14px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--bdr)}
+.noti-panel .ni{padding:12px 16px;border-bottom:1px solid #f5f3ee;font-size:12px;line-height:1.5}
+.noti-panel .ni:last-child{border-bottom:none}
+.noti-panel .ni .nd{font-size:10px;color:var(--txs);margin-top:2px}
+.noti-panel .ni.unread{background:#FFFCF0;border-left:3px solid var(--y)}
+.noti-panel .empty{padding:30px;text-align:center;color:var(--txs);font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dk);color:#fff;padding:14px 20px;border-radius:10px;font-size:13px;z-index:200;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:360px}
+.toast.on{display:flex;align-items:center;gap:10px}
+.toast .ticon{font-size:18px}
+
+@media(max-width:600px){
+  .wrap{padding:12px}
+  .grid{grid-template-columns:1fr}
+  .tstats{gap:16px;flex-wrap:wrap}
+  .topbar{padding:0 12px}
+  .tright .uname{display:none}
+  .phero{flex-direction:column;text-align:center}
+  .crow .cn{width:120px;font-size:11px}
+  .noti-panel{width:calc(100vw - 24px);right:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+<div class="login-bg">
+<div class="login-card">
+  <h1>ODARA</h1>
+  <div class="ls">ACADEMY</div>
+  <input type="email" id="login-email" placeholder="Seu email">
+  <input type="password" id="login-pass" placeholder="Sua senha">
+  <button class="lbtn" onclick="doLogin()" id="login-btn">Entrar</button>
+  <div class="lmsg" id="login-msg"></div>
+  <a class="ls" href="academy-gestao.html" style="display:inline-block;margin-top:16px;font-size:11px;color:#378ADD;text-decoration:underline;letter-spacing:0">Acesso gerencial →</a>
+</div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+<div class="topbar">
+  <div style="display:flex;align-items:center">
+    <div class="logo">ODARA <span>ACADEMY</span></div>
+    <div class="tnav">
+      <button class="on" onclick="goPage('home',this)">Minhas trilhas</button>
+      <button onclick="goPage('perfil',this)">Meu perfil</button>
+    </div>
+  </div>
+  <div class="tright">
+    <span class="uname" id="t-name"></span>
+    <button class="notif-btn" onclick="toggleNotif()" id="notif-toggle">🔔<span class="ndot" id="ndot"></span></button>
+    <div class="avatar" id="t-avatar"></div>
+    <button class="ubtn" onclick="doLogout()">Sair</button>
+  </div>
+</div>
+<div class="noti-panel" id="noti-panel"></div>
+
+<div class="wrap">
+  <div class="page on" id="pg-home">
+    <div id="home-loading" style="text-align:center;padding:60px;color:var(--txs)">Carregando suas trilhas...</div>
+    <div id="home-content" style="display:none"></div>
+  </div>
+  <div class="page" id="pg-trail">
+    <button class="back" onclick="goPage('home')">← Voltar para trilhas</button>
+    <div id="trail-content"></div>
+  </div>
+  <div class="page" id="pg-perfil">
+    <div id="perfil-content"></div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"><span class="ticon"></span><span id="toast-msg"></span></div>
+
+<script>
+const SB_URL='https://khqbimmcibutfrfmkoxr.supabase.co'
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo'
+const sb=supabase.createClient(SB_URL,SB_KEY)
+let ME=null,CURRENT_TRAIL=null
+
+const CC={Operacional:['#FAEEDA','#EF9F27','#854F0B'],Qualidade:['#EEEDFE','#7F77DD','#534AB7'],BPF:['#EEEDFE','#7F77DD','#534AB7'],'Segurança':['#FCEBEB','#E24B4A','#A32D2D'],Onboarding:['#E1F5EE','#1D9E75','#0F6E56']}
+const TI={video:'▶',texto:'📄',audio:'🎧',imagem:'🖼'}
+const TN={video:'Vídeo',texto:'Leitura',audio:'Áudio',imagem:'Imagem'}
+const LN=['Não conhece','Conhece','Aplica','Ensina']
+const LEVELS={1:'Iniciante',2:'Aprendiz',3:'Praticante',4:'Proficiente',5:'Especialista',6:'Referência',7:'Mestre',8:'Mestre Sênior',9:'Mestre Sênior',10:'Mestre Sênior'}
+function lvlName(n){return LEVELS[n]||'Nível '+n}
+function lvlXpNext(n){return n*200}
+
+// ══════ AUTH ══════
+async function doLogin(){
+  const e=document.getElementById('login-email').value.trim()
+  const p=document.getElementById('login-pass').value
+  const m=document.getElementById('login-msg')
+  if(!e){m.textContent='Informe o email';m.style.color=CC['Segurança'][1];return}
+  document.getElementById('login-btn').textContent='Entrando...'
+  if(p){
+    const{error}=await sb.auth.signInWithPassword({email:e,password:p})
+    if(error){m.textContent=error.message;m.style.color=CC['Segurança'][1];document.getElementById('login-btn').textContent='Entrar';return}
+  }else{
+    const{error}=await sb.auth.signInWithOtp({email:e})
+    if(error){m.textContent=error.message;m.style.color=CC['Segurança'][1];document.getElementById('login-btn').textContent='Entrar';return}
+    m.textContent='Link de acesso enviado ao email!';m.style.color='var(--g)';document.getElementById('login-btn').textContent='Entrar';return
+  }
+  await initApp()
+}
+async function doLogout(){await sb.auth.signOut();location.reload()}
+
+async function initApp(){
+  const{data:{session}}=await sb.auth.getSession()
+  if(!session){
+    const h=window.location.hash
+    if(h&&h.includes('access_token')){
+      const p=new URLSearchParams(h.substring(1))
+      await sb.auth.setSession({access_token:p.get('access_token'),refresh_token:p.get('refresh_token')})
+      window.location.hash=''
+    }
+    const{data:{session:s2}}=await sb.auth.getSession()
+    if(!s2) return
+  }
+  const{data:{user}}=await sb.auth.getUser()
+  if(!user) return
+  const{data:prof}=await sb.from('profiles').select('*').eq('id',user.id).single()
+  if(!prof){
+    document.getElementById('login-msg').textContent='Perfil não encontrado no sistema.'
+    document.getElementById('login-msg').style.color='var(--r)'
+    document.getElementById('login-btn').textContent='Entrar'
+    return
+  }
+  ME=prof
+  // busca cargo e area
+  try{
+    if(ME.cargo_id){const{data:c}=await sb.from('cargos').select('nome').eq('id',ME.cargo_id).single();if(c)ME._cargo=c.nome}
+    if(ME.area_id){const{data:a}=await sb.from('areas').select('nome').eq('id',ME.area_id).single();if(a)ME._area=a.nome}
+  }catch(e){}
+  document.getElementById('login-page').style.display='none'
+  document.getElementById('app').style.display='block'
+  document.getElementById('t-name').textContent=ME.nome||''
+  document.getElementById('t-avatar').textContent=initials(ME.nome)
+  loadHome()
+  loadNotifs()
+}
+
+function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+
+// ══════ NAVIGATION ══════
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'))
+  document.getElementById('pg-'+id).classList.add('on')
+  document.querySelectorAll('.tnav button').forEach(b=>b.classList.remove('on'))
+  if(btn)btn.classList.add('on')
+  else document.querySelectorAll('.tnav button').forEach(b=>{if(b.textContent.toLowerCase().includes(id==='home'?'trilha':'perfil'))b.classList.add('on')})
+  if(id==='perfil') loadPerfil()
+  if(id==='home') loadHome()
+  closeNotif()
+}
+
+// ══════ NOTIFICATIONS ══════
+async function loadNotifs(){
+  try{
+    const{data}=await sb.from('notificacoes').select('*').eq('profile_id',ME.id).order('created_at',{ascending:false}).limit(20)
+    const notifs=data||[]
+    const unread=notifs.filter(n=>!n.lida)
+    document.getElementById('ndot').style.display=unread.length?'block':'none'
+    let h='<div class="nh">Notificações'+(unread.length?' <span style="font-size:11px;color:var(--y);font-weight:400">('+unread.length+' novas)</span>':'')+'</div>'
+    if(!notifs.length) h+='<div class="empty">Nenhuma notificação ainda</div>'
+    notifs.forEach(n=>{
+      const d=new Date(n.created_at)
+      const ts=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+      h+=`<div class="ni ${n.lida?'':'unread'}">${n.mensagem||n.titulo||'Notificação'}<div class="nd">${ts}</div></div>`
+    })
+    document.getElementById('noti-panel').innerHTML=h
+    // marca como lidas
+    if(unread.length){
+      const ids=unread.map(n=>n.id)
+      await sb.from('notificacoes').update({lida:true}).in('id',ids)
+    }
+  }catch(e){
+    document.getElementById('noti-panel').innerHTML='<div class="empty">Sem notificações</div>'
+  }
+}
+function toggleNotif(){
+  const p=document.getElementById('noti-panel')
+  p.classList.toggle('on')
+  if(p.classList.contains('on')){loadNotifs();document.getElementById('ndot').style.display='none'}
+}
+function closeNotif(){document.getElementById('noti-panel').classList.remove('on')}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.noti-panel')&&!e.target.closest('.notif-btn'))closeNotif()
+})
+
+// ══════ TOAST ══════
+function toast(msg,icon){
+  const t=document.getElementById('toast')
+  t.querySelector('.ticon').textContent=icon||'✓'
+  document.getElementById('toast-msg').textContent=msg
+  t.classList.add('on')
+  setTimeout(()=>t.classList.remove('on'),3000)
+}
+
+// ══════ HOME ══════
+async function loadHome(){
+  document.getElementById('home-loading').style.display='block'
+  document.getElementById('home-content').style.display='none'
+
+  // busca trilhas atribuídas a este profile, ou à sua area, ou ao seu cargo
+  const orClauses=[]
+  orClauses.push(`profile_id.eq.${ME.id}`)
+  if(ME.area_id) orClauses.push(`area_id.eq.${ME.area_id}`)
+  if(ME.cargo_id) orClauses.push(`cargo_id.eq.${ME.cargo_id}`)
+
+  let trailIds=[]
+  try{
+    const{data:atrib}=await sb.from('trilhas_atribuicoes').select('trilha_id').or(orClauses.join(','))
+    trailIds=[...new Set((atrib||[]).map(a=>a.trilha_id))]
+  }catch(e){console.warn('Erro atribuições:',e)}
+
+  let trails=[]
+  if(trailIds.length){
+    const{data}=await sb.from('trilhas').select('*').in('id',trailIds).eq('ativo',true).order('categoria')
+    trails=data||[]
+  }else{
+    // fallback: mostra todas as ativas
+    const{data}=await sb.from('trilhas').select('*').eq('ativo',true).order('categoria')
+    trails=data||[]
+  }
+
+  // busca progresso
+  let progMap={}
+  try{
+    const{data:prog}=await sb.from('progresso_trilhas').select('trilha_id,percentual,conteudos_feitos,total_conteudos').eq('profile_id',ME.id)
+    ;(prog||[]).forEach(p=>progMap[p.trilha_id]=p)
+  }catch(e){}
+
+  // busca score
+  let score={xp_total:0,nivel:1,trilhas_concluidas:0}
+  try{
+    const{data:sc}=await sb.from('user_scores').select('*').eq('profile_id',ME.id).maybeSingle()
+    if(sc) score=sc
+  }catch(e){}
+
+  const concluidas=trails.filter(t=>progMap[t.id]&&progMap[t.id].percentual>=100).length
+
+  let h=`<div class="kpis">
+    <div class="kpi"><div class="kv">${trails.length}</div><div class="kl">Trilhas atribuídas</div></div>
+    <div class="kpi"><div class="kv">${concluidas}</div><div class="kl">Concluídas</div></div>
+    <div class="kpi"><div class="kv">${score.xp_total||0}</div><div class="kl">XP acumulado</div></div>
+    <div class="kpi"><div class="kv">${lvlName(score.nivel||1)}</div><div class="kl">Nível ${score.nivel||1}</div></div>
+  </div>`
+
+  const cats=[...new Set(trails.map(t=>t.categoria))]
+  cats.forEach(cat=>{
+    const col=CC[cat]||CC.Operacional
+    h+=`<div class="sec">${cat}</div><div class="grid">`
+    trails.filter(t=>t.categoria===cat).forEach(t=>{
+      const pr=progMap[t.id]
+      const pct=pr?Math.round(pr.percentual):0
+      const feitos=pr?pr.conteudos_feitos:0
+      const total=pr?pr.total_conteudos:'?'
+      h+=`<div class="tc" onclick="openTrail('${t.id}')">
+        ${t.obrigatoria?'<div class="otag">Obrigatória</div>':''}
+        <div class="tt">
+          <div class="ti" style="background:${col[0]};color:${col[2]}">${t.titulo.substring(0,2).toUpperCase()}</div>
+          <div style="flex:1"><div class="tn">${t.titulo}</div><div class="ts">${cat} · ${t.prazo_dias||'—'} dias</div></div>
+          <span class="pill" style="background:${pct>=100?'#EAF3DE;color:#3B6D11':pct>0?'#E6F1FB;color:#185FA5':'#f0ede5;color:#999'}">${pct>=100?'✓ Concluída':pct>0?pct+'%':'Nova'}</span>
+        </div>
+        <div class="td">${t.descricao||''}</div>
+        <div class="tb"><div class="tf" style="width:${pct}%;background:${col[1]}"></div></div>
+        <div class="tm"><span>${feitos}/${total} conteúdos</span><span>${t.xp_conclusao||0} XP</span></div>
+      </div>`
+    })
+    h+='</div>'
+  })
+  if(!trails.length) h+='<div style="text-align:center;padding:60px;color:var(--txs)"><div style="font-size:48px;margin-bottom:12px">📚</div><p>Nenhuma trilha atribuída no momento.</p><p style="font-size:12px;margin-top:8px">Peça ao seu gestor para atribuir trilhas no painel gerencial.</p></div>'
+
+  document.getElementById('home-content').innerHTML=h
+  document.getElementById('home-loading').style.display='none'
+  document.getElementById('home-content').style.display='block'
+}
+
+// ══════ TRAIL DETAIL ══════
+async function openTrail(id){
+  goPage('trail')
+  const el=document.getElementById('trail-content')
+  el.innerHTML='<div style="text-align:center;padding:60px;color:var(--txs)">Carregando trilha...</div>'
+
+  // busca trilha
+  const{data:trail,error:te}=await sb.from('trilhas').select('*').eq('id',id).single()
+  if(te||!trail){el.innerHTML='<p style="color:var(--r)">Erro ao carregar trilha</p>';console.error(te);return}
+  CURRENT_TRAIL=trail
+
+  // busca módulos
+  const{data:mods}=await sb.from('modulos').select('*').eq('trilha_id',id).eq('ativo',true).order('ordem')
+
+  // busca conteúdos de cada módulo
+  const modIds=(mods||[]).map(m=>m.id)
+  let conteudos=[],avaliacoes=[]
+  if(modIds.length){
+    const{data:c}=await sb.from('conteudos').select('*').in('modulo_id',modIds).order('ordem')
+    conteudos=c||[]
+    const{data:a}=await sb.from('avaliacoes').select('*').in('modulo_id',modIds).order('ordem')
+    avaliacoes=a||[]
+  }
+
+  // busca progresso dos conteúdos para este user
+  const cIds=conteudos.map(c=>c.id)
+  let doneSet=new Set()
+  if(cIds.length){
+    try{
+      const{data:pc}=await sb.from('progresso_conteudos').select('conteudo_id').eq('profile_id',ME.id).eq('concluido',true).in('conteudo_id',cIds)
+      ;(pc||[]).forEach(p=>doneSet.add(p.conteudo_id))
+    }catch(e){}
+  }
+
+  // calcula progresso
+  const totalItems=conteudos.length+avaliacoes.length
+  const doneCount=doneSet.size
+  const pct=totalItems?Math.round(doneCount/totalItems*100):0
+  const col=CC[trail.categoria]||CC.Operacional
+
+  let h=`<div class="thero">
+    <h1>${trail.titulo}</h1>
+    <div class="tdesc">${trail.descricao||''}</div>
+    <div class="ttags">
+      <span class="ttag">${trail.categoria}</span>
+      ${trail.obrigatoria?'<span class="ttag">Obrigatória</span>':''}
+      ${trail.prazo_dias?'<span class="ttag">'+trail.prazo_dias+' dias de prazo</span>':''}
+      <span class="ttag">Nota mínima: ${trail.nota_minima||70}%</span>
+    </div>
+    <div class="tstats">
+      <div class="st"><div class="sv">${(mods||[]).length}</div><div class="sl">Módulos</div></div>
+      <div class="st"><div class="sv">${totalItems}</div><div class="sl">Conteúdos</div></div>
+      <div class="st"><div class="sv">${trail.xp_conclusao||0}</div><div class="sl">XP total</div></div>
+      <div class="st"><div class="sv">${doneCount}/${totalItems}</div><div class="sl">Feitos</div></div>
+      <div class="st"><div class="sv">${pct}%</div><div class="sl">Progresso</div></div>
+    </div>
+    <div class="tpbar"><div class="tpf" style="width:${pct}%"></div></div>
+  </div>`;
+
+  (mods||[]).forEach((m,mi)=>{
+    const mConts=conteudos.filter(c=>c.modulo_id===m.id)
+    const mAvals=avaliacoes.filter(a=>a.modulo_id===m.id)
+    const items=[...mConts,...mAvals.map(a=>({...a,_isAval:true}))]
+    const mXp=mConts.reduce((s,c)=>s+(c.xp_conclusao||0),0)+mAvals.reduce((s,a)=>s+(a.xp_aprovacao||0),0)
+    const mDone=mConts.filter(c=>doneSet.has(c.id)).length
+    const mTotal=mConts.length+mAvals.length
+
+    h+=`<div class="mblock">
+      <div class="mhead" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.ma').classList.toggle('open')">
+        <div class="mn" style="background:${col[0]};color:${col[2]}">${mi+1}</div>
+        <div class="mt">${m.titulo}</div>
+        <div class="mx">${mDone}/${mTotal} · ${mXp} XP</div>
+        <div class="ma ${mi===0?'open':''}">▼</div>
+      </div>
+      <div class="mitems ${mi===0?'open':''}">`
+
+    items.forEach(it=>{
+      const isAval=it._isAval
+      const done=!isAval&&doneSet.has(it.id)
+      const st=it.subtipo||''
+      let ico=isAval?'📝':(TI[it.tipo]||'📝')
+      let tname=isAval?'Teste / Quiz':(TN[it.tipo]||it.tipo)
+      if(st==='atividade_supervisionada'){ico='🔧';tname='Atividade supervisionada'}
+      if(st==='validacao_supervisor'){ico='✅';tname='Validação do supervisor'}
+      if(st==='validacao_facilitador'){ico='✅';tname='Validação do facilitador'}
+      const dur=it.duracao_min?' · '+it.duracao_min+' min':''
+      const xp=isAval?(it.xp_aprovacao||0):(it.xp_conclusao||0)
+      const clickAction=isAval?'':`onclick="markDone('${it.id}',this,'${id}')"`
+      let resourceHtml=''
+      if(it.url){
+        const u=it.url.toLowerCase()
+        if(u.includes('youtube.com')||u.includes('youtu.be')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">▶ Assistir vídeo</a>'
+        else if(u.endsWith('.pdf')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">📕 Abrir PDF</a>'
+        else if(u.endsWith('.doc')||u.endsWith('.docx')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">📄 Baixar documento</a>'
+        else if(u.endsWith('.xls')||u.endsWith('.xlsx')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">📊 Baixar planilha</a>'
+        else if(u.endsWith('.ppt')||u.endsWith('.pptx')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">📊 Abrir apresentação</a>'
+        else if(u.endsWith('.png')||u.endsWith('.jpg')||u.endsWith('.jpeg')||u.endsWith('.gif')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">🖼 Ver imagem</a>'
+        else if(u.endsWith('.mp3')||u.endsWith('.wav')) resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">🎧 Ouvir áudio</a>'
+        else resourceHtml=' · <a href="'+it.url+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--b)">🔗 Abrir recurso</a>'
+      }
+      const descHtml=it.descricao?'<div style="font-size:11px;color:var(--txs);margin-top:4px;padding:6px 8px;background:var(--bg);border-radius:6px;line-height:1.5">'+it.descricao+'</div>':''
+
+      h+=`<div class="mi" ${clickAction}>
+        <div class="mii" style="background:${col[0]};color:${col[2]}">${ico}</div>
+        <div class="min">
+          <div class="mit">${it.titulo}</div>
+          <div class="mis">${tname}${dur}${resourceHtml}</div>
+          ${descHtml}
+        </div>
+        <div class="mix">+${xp} XP</div>
+        <div class="mic ${done?'done':''}">${done?'✓':''}</div>
+      </div>`
+    })
+    h+='</div></div>'
+  })
+
+  if(!(mods||[]).length) h+='<div style="text-align:center;padding:40px;color:var(--txs)">Esta trilha ainda não tem módulos ou conteúdos cadastrados.</div>'
+
+  h+=`<div class="legend" style="margin-top:24px">
+    <span>▶ Vídeo</span><span>📄 Leitura</span><span>🎧 Áudio</span>
+    <span>📝 Teste / Quiz</span><span>🔧 Atividade supervisionada</span><span>✅ Validação</span>
+    <span style="margin-left:8px;color:var(--g)">● = Concluído (clique para marcar)</span>
+  </div>`
+
+  el.innerHTML=h
+}
+
+async function markDone(contentId,el,trailId){
+  const chk=el.querySelector('.mic')
+  if(chk.classList.contains('done')) return // já concluído
+  try{
+    const{error}=await sb.from('progresso_conteudos').upsert({
+      conteudo_id:contentId,
+      profile_id:ME.id,
+      concluido:true,
+      concluido_em:new Date().toISOString()
+    },{onConflict:'conteudo_id,profile_id'})
+    if(error){console.error(error);toast('Erro ao salvar progresso','⚠');return}
+    chk.classList.add('done')
+    chk.textContent='✓'
+    toast('Conteúdo concluído! XP atualizado.','🎉')
+    // atualiza contadores no header
+    setTimeout(()=>openTrail(trailId),800)
+  }catch(e){console.error(e);toast('Erro de conexão','⚠')}
+}
+
+// ══════ PERFIL ══════
+async function loadPerfil(){
+  const el=document.getElementById('perfil-content')
+  el.innerHTML='<div style="text-align:center;padding:60px;color:var(--txs)">Carregando perfil...</div>'
+  const ini=initials(ME.nome)
+
+  // score
+  let score={xp_total:0,nivel:1,trilhas_concluidas:0}
+  try{const{data:sc}=await sb.from('user_scores').select('*').eq('profile_id',ME.id).maybeSingle();if(sc)score=sc}catch(e){}
+
+  // competencias e matriz
+  let comp=[],matrix=[]
+  try{
+    const{data:c}=await sb.from('competencias').select('*').order('categoria,nome')
+    comp=c||[]
+  }catch(e){}
+  try{
+    const{data:mc}=await sb.from('matriz_competencias').select('*').eq('profile_id',ME.id)
+    matrix=mc||[]
+  }catch(e){
+    // tenta tabela alternativa
+    try{
+      const{data:mc2}=await sb.from('matriz_colaborador').select('*').eq('profile_id',ME.id)
+      matrix=mc2||[]
+    }catch(e2){}
+  }
+
+  let h=`<div class="phero">
+    <div class="pa">${ini}</div>
+    <div>
+      <div class="pn">${ME.nome}</div>
+      <div class="pr">${ME._cargo||''} ${ME._area?'· '+ME._area:''} ${ME.turno?'· Turno '+ME.turno:''}</div>
+    </div>
+  </div>`
+
+  h+=`<div class="kpis">
+    <div class="kpi"><div class="kv">${score.xp_total||0}</div><div class="kl">XP total</div></div>
+    <div class="kpi"><div class="kv">${lvlName(score.nivel||1)}</div><div class="kl">Nível ${score.nivel||1} de 7</div></div>
+    <div class="kpi"><div class="kv">${score.trilhas_concluidas||0}</div><div class="kl">Trilhas concluídas</div></div>
+  </div>`
+
+  // XP progress to next level
+  const curLvl=score.nivel||1
+  const xpNext=lvlXpNext(curLvl)
+  const xpCur=score.xp_total||0
+  const xpPct=Math.min(100,Math.round(xpCur/xpNext*100))
+  h+=`<div style="background:var(--card);border-radius:var(--rd);border:1px solid var(--bdr);padding:20px;margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:600">Progresso para o próximo nível</span>
+      <span style="font-size:12px;color:var(--txs)">${xpCur} / ${xpNext} XP → <strong>${lvlName(curLvl+1)}</strong></span>
+    </div>
+    <div style="height:12px;background:#eee;border-radius:6px;overflow:hidden"><div style="height:100%;width:${xpPct}%;background:linear-gradient(90deg,var(--y),var(--yd));border-radius:6px"></div></div>
+    <div style="margin-top:12px;font-size:11px;color:var(--txs)">
+      <strong>Níveis:</strong> 1-Iniciante · 2-Aprendiz · 3-Praticante · 4-Proficiente · 5-Especialista · 6-Referência · 7-Mestre
+    </div>
+  </div>`
+
+  // MATRIZ DE COMPETÊNCIAS
+  h+=`<div style="background:var(--card);border-radius:var(--rd);border:1px solid var(--bdr);padding:24px;margin-bottom:20px">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Minha matriz de competências</h2>
+    <p style="font-size:12px;color:var(--txs);margin-bottom:20px">Mostra seu nível atual em cada competência versus o nível esperado para seu cargo. O gap indica o que falta desenvolver.</p>`
+
+  if(!comp.length){
+    h+='<div style="text-align:center;padding:30px;color:var(--txs)">Nenhuma competência cadastrada no sistema ainda.</div>'
+  }else{
+    const cats=[...new Set(comp.map(c=>c.categoria))]
+    let totalGap=0,totalComp=0,proficient=0
+
+    cats.forEach(cat=>{
+      const catColor=CC[cat]||CC.Operacional
+      h+=`<div style="font-size:11px;font-weight:700;color:${catColor[2]};margin:20px 0 10px;text-transform:uppercase;letter-spacing:.5px;padding:4px 10px;background:${catColor[0]};border-radius:6px;display:inline-block">${cat}</div>`
+      comp.filter(c=>c.categoria===cat).forEach(c=>{
+        const m=matrix.find(x=>(x.competencia_id||x.competencias_id)===c.id)
+        const atual=m?.nivel_atual||0
+        const desejado=m?.nivel_desejado||0
+        const gap=Math.max(0,desejado-atual)
+        totalGap+=gap
+        totalComp++
+        if(atual>=desejado&&desejado>0) proficient++
+        const pctA=(atual/4)*100
+        const pctD=(desejado/4)*100
+        const barColor=gap>1?'var(--r)':gap>0?'var(--y)':'var(--g)'
+        h+=`<div class="crow">
+          <div class="cn">${c.nome}</div>
+          <div class="cbar">
+            <div class="cfill" style="width:${pctA}%;background:${barColor}"></div>
+            ${desejado>0?`<div class="ctarget" style="left:${pctD}%"></div>`:''}
+          </div>
+          <div class="cval">
+            <span class="lv l${atual}" style="width:18px;height:18px;font-size:8px">${atual}</span>
+            <span style="color:var(--txs);font-size:10px">→</span>
+            <span class="lv l${desejado}" style="width:18px;height:18px;font-size:8px">${desejado}</span>
+            ${gap>0?`<span class="gbadge">-${gap}</span>`:''}
+          </div>
+        </div>`
+      })
+    })
+
+    h+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--bdr)">
+      <div style="text-align:center"><div style="font-size:22px;font-weight:700">${totalGap}</div><div style="font-size:10px;color:var(--txs);text-transform:uppercase">Gap total</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:700">${proficient}/${totalComp}</div><div style="font-size:10px;color:var(--txs);text-transform:uppercase">Proficiente</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:700">${totalComp?Math.round(comp.reduce((s,c)=>{const m=matrix.find(x=>(x.competencia_id||x.competencias_id)===c.id);return s+(m?.nivel_atual||0)},0)/totalComp/4*100):0}%</div><div style="font-size:10px;color:var(--txs);text-transform:uppercase">Média geral</div></div>
+    </div>`
+  }
+
+  h+=`</div>
+  <div class="legend">
+    <span><span class="lv l0">0</span> ${LN[0]}</span>
+    <span><span class="lv l1">1</span> ${LN[1]}</span>
+    <span><span class="lv l2">2</span> ${LN[2]}</span>
+    <span><span class="lv l3">3</span> Aplica c/ autonomia</span>
+    <span><span class="lv l4">4</span> ${LN[3]}</span>
+    <span style="margin-left:12px">Barra = nível atual</span>
+    <span>| Marcador escuro = nível desejado</span>
+    <span><span class="gbadge">-N</span> = Gap a desenvolver</span>
+  </div>`
+
+  el.innerHTML=h
+}
+
+// ══════ INIT ══════
+initApp()
+</script>
+</body>
+</html>
