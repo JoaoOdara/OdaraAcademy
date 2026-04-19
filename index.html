@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0C0C0C">
+<title>Odara Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"
+        onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';document.head.appendChild(s);"></script>
+<style>
+:root{
+  --od-yellow:#FFB81D;
+  --od-yellow-dark:#E5A300;
+  --od-red:#EE2737;
+  --od-cream:#FFF8EA;
+  --od-cream-dark:#F2EBD7;
+  --od-black:#0C0C0C;
+  --od-black-soft:#1A1A1A;
+  --od-gray:#565555;
+  --od-gray-light:#B5B0A2;
+  --od-line:rgba(12,12,12,0.08);
+  --od-line-dark:rgba(255,255,255,0.08);
+  --shadow-sm:0 1px 2px rgba(12,12,12,0.04);
+  --shadow-md:0 4px 16px rgba(12,12,12,0.06);
+  --radius:14px;
+  --radius-lg:20px;
+  --radius-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--od-cream);color:var(--od-black);font-family:'Barlow',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{padding-bottom:80px;min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:15px}
+a{color:inherit;text-decoration:none}
+.font-display{font-family:'Barlow Condensed',sans-serif;letter-spacing:-0.01em}
+.font-serif{font-family:'DM Serif Display',serif}
+.uppercase{text-transform:uppercase;letter-spacing:1.8px;font-size:11px;font-weight:600}
+
+/* ═══════ APP SHELL ═══════ */
+#app{max-width:480px;margin:0 auto;background:var(--od-cream);min-height:100vh;position:relative}
+.screen{display:none;animation:fadeIn .25s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ═══════ HEADER ═══════ */
+.header{background:var(--od-black);color:#fff;padding:18px 20px 24px;border-radius:0 0 24px 24px}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.header-brand{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:3px;color:var(--od-gray-light);text-transform:uppercase}
+.header-greeting{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:600;color:var(--od-yellow);margin-top:2px;letter-spacing:-0.01em}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;font-family:'Barlow Condensed',sans-serif;flex-shrink:0}
+.journey-card{background:rgba(255,184,29,0.08);border-left:2px solid var(--od-yellow);border-radius:10px;padding:12px 14px;margin-top:6px}
+.journey-label{color:var(--od-yellow);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.journey-numbers{display:flex;align-items:baseline;gap:6px;color:#fff}
+.journey-numbers .big{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1}
+.journey-numbers .small{font-size:13px;color:#aaa}
+.journey-bar{margin-top:10px;background:rgba(255,255,255,0.08);border-radius:99px;height:6px;overflow:hidden}
+.journey-fill{background:var(--od-yellow);height:100%;border-radius:99px;transition:width .6s ease}
+
+/* ═══════ SECTIONS ═══════ */
+.section{padding:0 20px;margin-top:24px}
+.section-label{color:var(--od-red);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.section-link{color:var(--od-gray);font-size:11px;font-weight:500;letter-spacing:0.5px;text-transform:none}
+
+/* ═══════ CARDS ═══════ */
+.card{background:#fff;border-radius:var(--radius);padding:14px;border:0.5px solid var(--od-line);box-shadow:var(--shadow-sm);transition:transform .15s ease}
+.card:active{transform:scale(0.98)}
+.card-row{display:flex;align-items:center;gap:12px}
+.card-icon{width:46px;height:46px;border-radius:11px;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0}
+.card-icon.red{background:var(--od-red);color:#fff}
+.card-icon.dark{background:var(--od-black);color:var(--od-yellow)}
+.card-icon.cream{background:var(--od-cream-dark);color:var(--od-black)}
+.card-body{flex:1;min-width:0}
+.card-title{font-size:14px;font-weight:600;color:var(--od-black);line-height:1.3}
+.card-sub{font-size:11px;color:var(--od-gray);margin-top:2px;display:flex;align-items:center;gap:4px}
+.card-arrow{color:var(--od-gray-light);font-size:18px;flex-shrink:0}
+
+/* progress dots inside trail card */
+.dots{display:flex;gap:5px;margin-top:14px}
+.dot{flex:1;height:4px;background:var(--od-cream-dark);border-radius:2px}
+.dot.done{background:var(--od-yellow)}
+.dot.current{background:var(--od-red)}
+
+/* ═══════ JOURNEY (timeline) ═══════ */
+.journey{position:relative;padding-left:26px;margin-top:4px}
+.journey-line{position:absolute;left:11px;top:10px;bottom:10px;width:2px;background:var(--od-cream-dark);border-radius:2px}
+.journey-line-fill{position:absolute;left:11px;top:10px;width:2px;background:var(--od-yellow);border-radius:2px;transition:height .8s ease}
+.journey-item{position:relative;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.journey-item:last-child{margin-bottom:0}
+.journey-bullet{position:absolute;left:-26px;width:22px;height:22px;border-radius:50%;background:var(--od-cream-dark);border:2px solid var(--od-cream);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--od-gray);transition:all .3s}
+.journey-bullet.done{background:var(--od-yellow);color:var(--od-black);border-color:var(--od-cream)}
+.journey-bullet.current{background:var(--od-red);color:#fff;border-color:var(--od-cream);box-shadow:0 0 0 4px rgba(238,39,55,0.15)}
+.journey-card-item{flex:1;background:#fff;border-radius:11px;padding:11px 13px;border:0.5px solid var(--od-line)}
+.journey-card-item.current{background:var(--od-black);color:#fff;border-color:var(--od-black)}
+.journey-card-item.locked{opacity:0.45}
+.journey-title{font-size:13px;font-weight:600;line-height:1.3}
+.journey-card-item.current .journey-title{color:var(--od-yellow)}
+.journey-meta{font-size:10px;color:var(--od-gray);margin-top:2px}
+.journey-card-item.current .journey-meta{color:#aaa}
+
+/* ═══════ TRACK DETAIL — module + content ═══════ */
+.back-bar{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--od-cream);position:sticky;top:0;z-index:10;border-bottom:0.5px solid var(--od-line)}
+.back-btn{width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--od-black);border:0.5px solid var(--od-line)}
+.back-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;color:var(--od-black)}
+
+.track-hero{padding:20px;background:var(--od-black);color:#fff;border-radius:0 0 24px 24px;margin-bottom:20px}
+.track-hero h1{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--od-yellow);line-height:1.1;letter-spacing:-0.01em}
+.track-hero p{color:#bbb;font-size:13px;margin-top:6px;line-height:1.5}
+.track-stats{display:flex;gap:16px;margin-top:14px;font-size:11px;color:#888}
+.track-stat-num{color:#fff;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:16px}
+.track-progress-bar{margin-top:14px;background:rgba(255,255,255,0.08);border-radius:99px;height:6px;overflow:hidden}
+.track-progress-fill{background:var(--od-yellow);height:100%;border-radius:99px}
+
+.module{padding:0 20px;margin-bottom:18px}
+.module-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.module-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--od-red);letter-spacing:2px}
+.module-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;color:var(--od-black);flex:1}
+
+.content-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:11px 13px;border:0.5px solid var(--od-line);margin-bottom:7px;cursor:pointer;transition:transform .12s,border-color .12s}
+.content-item:active{transform:scale(0.98)}
+.content-item.locked{opacity:0.5;cursor:not-allowed}
+.content-item:hover:not(.locked){border-color:rgba(12,12,12,0.18)}
+.content-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--od-cream-dark);color:var(--od-black)}
+.content-icon.video{background:#FFE4E4;color:var(--od-red)}
+.content-icon.text{background:#FFF1C9;color:#8A6300}
+.content-icon.audio{background:#E8DDFF;color:#5340A8}
+.content-icon.image{background:#D9F0E5;color:#1F7A4D}
+.content-icon.test{background:var(--od-black);color:var(--od-yellow)}
+.content-body{flex:1;min-width:0}
+.content-title{font-size:13.5px;font-weight:500;color:var(--od-black);line-height:1.3}
+.content-meta{font-size:10.5px;color:var(--od-gray);margin-top:2px;display:flex;gap:6px;align-items:center}
+.check-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--od-cream-dark);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:#fff;transition:all .2s}
+.check-circle.done{background:var(--od-yellow);border-color:var(--od-yellow);color:var(--od-black);font-weight:700}
+.check-circle.locked{background:transparent;border-color:var(--od-cream-dark);color:var(--od-gray-light)}
+
+/* ═══════ CONTENT VIEWER — vídeo embedado mesma página ═══════ */
+.viewer-wrap{padding:0;background:var(--od-cream);min-height:100vh;padding-bottom:120px}
+.viewer-video-frame{width:100%;background:#000;aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center}
+.viewer-video-frame iframe{width:100%;height:100%;border:none;display:block}
+.viewer-video-frame .placeholder{color:#666;font-size:13px;text-align:center;padding:20px}
+.viewer-content{padding:20px}
+.viewer-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--od-red);font-weight:700;margin-bottom:6px}
+.viewer-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--od-black);line-height:1.1;letter-spacing:-0.01em;margin-bottom:8px}
+.viewer-meta{display:flex;gap:14px;color:var(--od-gray);font-size:12px;margin-bottom:18px;padding-bottom:18px;border-bottom:0.5px solid var(--od-line)}
+.viewer-body{color:var(--od-black);font-size:15px;line-height:1.7;white-space:pre-wrap}
+.viewer-body a{color:var(--od-red);text-decoration:underline;font-weight:500}
+.viewer-resource{margin-top:18px;background:#fff;border:0.5px solid var(--od-line);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px}
+.viewer-resource-icon{width:42px;height:42px;border-radius:10px;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.viewer-resource-text{flex:1;min-width:0}
+.viewer-resource-title{font-size:13px;font-weight:600}
+.viewer-resource-sub{font-size:11px;color:var(--od-gray)}
+.viewer-resource a{color:var(--od-red);font-size:12px;font-weight:600;letter-spacing:0.3px}
+
+.viewer-actions{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:14px 20px;background:linear-gradient(180deg,transparent,var(--od-cream) 30%);z-index:50;display:flex;gap:10px}
+.btn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:600;font-family:'Barlow',sans-serif;text-align:center;transition:transform .12s,opacity .15s}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--od-yellow);color:var(--od-black)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed}
+.btn-primary.done{background:var(--od-black);color:var(--od-yellow)}
+.btn-secondary{background:#fff;color:var(--od-black);border:0.5px solid var(--od-line)}
+
+/* ═══════ TRACKS LIST ═══════ */
+.track-card{background:#fff;border-radius:var(--radius);padding:14px;border:0.5px solid var(--od-line);margin-bottom:10px;cursor:pointer;transition:transform .12s}
+.track-card:active{transform:scale(0.98)}
+.track-card-row{display:flex;align-items:flex-start;gap:12px}
+.track-card-icon{width:46px;height:46px;border-radius:12px;background:var(--od-cream-dark);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.track-card-icon.active{background:var(--od-yellow)}
+.track-card-icon.done{background:var(--od-black);color:var(--od-yellow)}
+.track-card-body{flex:1;min-width:0}
+.track-card-title{font-size:14.5px;font-weight:600;color:var(--od-black);line-height:1.3}
+.track-card-meta{font-size:11px;color:var(--od-gray);margin-top:2px}
+.track-card-bar{margin-top:10px;background:var(--od-cream-dark);border-radius:99px;height:5px;overflow:hidden}
+.track-card-fill{background:var(--od-yellow);height:100%;border-radius:99px;transition:width .5s}
+.track-card-status{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-top:6px}
+.track-card-status.done{color:var(--od-yellow-dark)}
+.track-card-status.progress{color:var(--od-red)}
+.track-card-status.locked{color:var(--od-gray-light)}
+
+/* ═══════ CURADORIA ═══════ */
+.curadoria-hero{background:var(--od-black);color:#fff;padding:24px 20px;border-radius:0 0 24px 24px}
+.curadoria-hero h1{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;color:var(--od-yellow);line-height:1;letter-spacing:-0.01em}
+.curadoria-hero p{color:#aaa;font-size:13px;margin-top:8px;line-height:1.5}
+
+.area-pills{display:flex;gap:8px;overflow-x:auto;padding:16px 20px 8px;scrollbar-width:none}
+.area-pills::-webkit-scrollbar{display:none}
+.area-pill{padding:8px 14px;border-radius:99px;background:#fff;border:0.5px solid var(--od-line);font-size:12px;font-weight:600;color:var(--od-gray);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:all .15s}
+.area-pill.active{background:var(--od-black);color:var(--od-yellow);border-color:var(--od-black)}
+
+.cur-item{background:#fff;border-radius:var(--radius);padding:14px;border:0.5px solid var(--od-line);margin-bottom:10px;cursor:pointer;transition:transform .12s}
+.cur-item:active{transform:scale(0.98)}
+.cur-item.destaque{border:1.5px solid var(--od-yellow);background:linear-gradient(180deg,rgba(255,184,29,0.04),#fff)}
+.cur-row{display:flex;gap:12px;align-items:flex-start}
+.cur-format{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--od-cream-dark);color:var(--od-black);font-weight:700}
+.cur-format.video{background:#FFE4E4;color:var(--od-red)}
+.cur-format.curso{background:#FFF1C9;color:#8A6300}
+.cur-format.podcast{background:#E8DDFF;color:#5340A8}
+.cur-format.ebook{background:#D9F0E5;color:#1F7A4D}
+.cur-format.artigo{background:var(--od-cream-dark);color:var(--od-black)}
+.cur-body{flex:1;min-width:0}
+.cur-title{font-size:13.5px;font-weight:600;color:var(--od-black);line-height:1.3}
+.cur-desc{font-size:11.5px;color:var(--od-gray);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cur-meta{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.cur-tag{font-size:10px;padding:3px 8px;border-radius:99px;background:var(--od-cream-dark);color:var(--od-gray);font-weight:500}
+.cur-tag.dest{background:var(--od-yellow);color:var(--od-black);font-weight:700}
+.cur-source{font-size:10.5px;color:var(--od-gray);font-style:italic}
+.empty{padding:40px 20px;text-align:center;color:var(--od-gray)}
+.empty-icon{font-size:42px;margin-bottom:12px;opacity:0.4}
+
+/* ═══════ PROFILE ═══════ */
+.profile-hero{background:var(--od-black);color:#fff;padding:24px 20px 28px;border-radius:0 0 24px 24px;text-align:center}
+.profile-avatar{width:78px;height:78px;border-radius:50%;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;margin:0 auto 12px;font-family:'Barlow Condensed',sans-serif}
+.profile-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:600;color:var(--od-yellow)}
+.profile-role{color:#aaa;font-size:13px;margin-top:2px}
+.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:20px 20px 0;padding:14px;background:#fff;border-radius:var(--radius);border:0.5px solid var(--od-line)}
+.profile-stat{text-align:center;padding:4px}
+.profile-stat-num{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--od-black);line-height:1}
+.profile-stat-label{font-size:10px;color:var(--od-gray);letter-spacing:1px;text-transform:uppercase;margin-top:4px;font-weight:600}
+.profile-section{padding:0 20px;margin-top:20px}
+.profile-row{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border:0.5px solid var(--od-line);border-radius:12px;margin-bottom:8px;cursor:pointer}
+.profile-row-icon{width:36px;height:36px;border-radius:10px;background:var(--od-cream-dark);display:flex;align-items:center;justify-content:center;font-size:16px}
+.profile-row-text{flex:1;font-size:14px;font-weight:500}
+.profile-row-arrow{color:var(--od-gray-light);font-size:18px}
+
+/* ═══════ BOTTOM NAV ═══════ */
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid var(--od-line);padding:8px 0 max(8px,env(safe-area-inset-bottom));display:flex;z-index:100;max-width:480px;margin:0 auto}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;color:var(--od-gray-light);font-size:10.5px;font-weight:600;letter-spacing:0.3px;cursor:pointer;transition:color .15s}
+.nav-item.active{color:var(--od-black)}
+.nav-item .icon{font-size:20px;line-height:1}
+.nav-item.active .icon{color:var(--od-yellow)}
+
+/* ═══════ TOAST ═══════ */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-120%);background:var(--od-black);color:#fff;padding:12px 18px;border-radius:99px;font-size:13px;font-weight:500;z-index:1000;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:transform .3s ease;max-width:90vw;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast .ti{font-size:18px}
+.toast .tt{color:var(--od-yellow);font-weight:700}
+
+/* ═══════ LOGIN ═══════ */
+.login{min-height:100vh;display:flex;flex-direction:column;background:var(--od-black);padding:0}
+.login-top{flex:1;padding:48px 28px 24px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,#0C0C0C,#1a1a1a)}
+.login-brand{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--od-gray-light);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px}
+.login-title{font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:700;color:var(--od-yellow);line-height:1;letter-spacing:-0.02em}
+.login-sub{color:#aaa;font-size:14px;margin-top:10px;line-height:1.5;max-width:280px}
+.login-card{background:var(--od-cream);border-radius:32px 32px 0 0;padding:32px 28px 40px;flex-shrink:0}
+.login-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--od-gray);font-weight:700;display:block;margin-bottom:8px}
+.login-input{width:100%;background:#fff;border:0.5px solid var(--od-line);border-radius:12px;padding:14px 16px;font-size:15px;color:var(--od-black);outline:none;transition:border-color .15s;font-family:'Barlow',sans-serif}
+.login-input:focus{border-color:var(--od-black)}
+.login-btn{width:100%;background:var(--od-black);color:var(--od-yellow);border:none;border-radius:12px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;letter-spacing:0.5px;margin-top:18px;transition:transform .12s}
+.login-btn:active{transform:scale(0.98)}
+.login-help{font-size:12px;color:var(--od-gray);text-align:center;margin-top:14px}
+.login-help a{color:var(--od-red);font-weight:600}
+
+/* ═══════ MODAL (avaliação) ═══════ */
+.modal{position:fixed;inset:0;background:rgba(12,12,12,0.6);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.modal-content{background:var(--od-cream);width:100%;max-width:480px;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-head{padding:18px 20px;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid var(--od-line);position:sticky;top:0;background:var(--od-cream);z-index:5}
+.modal-close{width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;border:0.5px solid var(--od-line)}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;flex:1;color:var(--od-black)}
+.modal-body{padding:20px}
+
+/* ═══════ QUIZ ═══════ */
+.q-num{font-size:11px;color:var(--od-red);letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.q-text{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;color:var(--od-black);line-height:1.3;margin-bottom:18px}
+.q-opt{background:#fff;border:1.5px solid var(--od-line);border-radius:12px;padding:14px 16px;margin-bottom:8px;cursor:pointer;font-size:14px;font-weight:500;line-height:1.4;transition:all .15s}
+.q-opt:active{transform:scale(0.99)}
+.q-opt.selected{border-color:var(--od-black);background:#fff}
+.q-opt.correct{background:#E8F5E9;border-color:#4CAF50;color:#1B5E20}
+.q-opt.wrong{background:#FFEBEE;border-color:var(--od-red);color:#B71C1C}
+.q-feedback{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.4}
+.q-feedback.ok{background:#E8F5E9;color:#1B5E20}
+.q-feedback.err{background:#FFEBEE;color:#B71C1C}
+
+@media (min-width:481px){
+  body{background:var(--od-cream-dark)}
+  #app{box-shadow:0 0 60px rgba(0,0,0,0.06)}
+  .nav{box-shadow:0 -4px 20px rgba(0,0,0,0.05)}
+  .viewer-actions{box-shadow:0 -4px 20px rgba(255,248,234,0.9)}
+}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"><span class="ti" id="toast-icon">✓</span><span><span class="tt" id="toast-title">+10 XP</span> <span id="toast-msg"></span></span></div>
+
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ODARA ACADEMY — APP COMPLETO
+// ═══════════════════════════════════════════════════════════
+
+const SUPABASE_URL  = 'https://khqbimmcibutfrfmkoxr.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocWJpbW1jaWJ1dGZyZm1rb3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTY1NjUsImV4cCI6MjA4OTkzMjU2NX0.w3vRAPhiU7Zavgkiv-ldjbHc_UJeGH9ck2tq_YN6MBo';
+
+// Espera o SDK do Supabase carregar (até 8s). Se não vier, mostra erro visível.
+function waitForSupabase(timeout = 8000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    (function check() {
+      if (window.supabase && typeof window.supabase.createClient === 'function') return resolve();
+      if (Date.now() - start > timeout) return reject(new Error('Supabase SDK não carregou'));
+      setTimeout(check, 100);
+    })();
+  });
+}
+
+let sb;
+
+// ─── ESTADO ───
+let ME = null;
+let CURRENT_SCREEN = 'home';
+let CURRENT_TRACK = null;
+let CURRENT_CONTENT = null;
+let CURRENT_QUIZ = null;
+let CURRENT_AREA = 'todas';
+
+const el = document.getElementById('app');
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function toast(icon, title, msg = '') {
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).slice(0, 2).map(n => n[0]).join('').toUpperCase();
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Bom dia';
+  if (h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+function ytExtract(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([^&?\s/]+)/);
+  return m ? m[1] : null;
+}
+
+function detectFormat(url) {
+  if (!url) return 'link';
+  const u = url.toLowerCase();
+  if (u.includes('youtube') || u.includes('youtu.be') || u.includes('vimeo')) return 'video';
+  if (u.endsWith('.pdf')) return 'pdf';
+  if (u.match(/\.(doc|docx)$/)) return 'doc';
+  if (u.match(/\.(xls|xlsx|csv)$/)) return 'sheet';
+  if (u.match(/\.(ppt|pptx)$/)) return 'slide';
+  if (u.match(/\.(jpg|jpeg|png|gif|webp)$/)) return 'image';
+  if (u.match(/\.(mp3|wav|ogg|m4a)$/)) return 'audio';
+  return 'link';
+}
+
+function formatIcon(fmt) {
+  const map = {
+    video: '▶', curso: '🎓', artigo: '📄', podcast: '🎧', ebook: '📕',
+    planilha: '📊', pdf: '📄', doc: '📄', sheet: '📊', slide: '📊',
+    image: '🖼', audio: '🎧', link: '🔗', text: '📖', test: '✓'
+  };
+  return map[fmt] || '📎';
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { renderLogin(); return false; }
+  const ok = await loadMe(session.user.id);
+  if (!ok) {
+    // sessão existe mas o perfil não — desloga e volta pro login
+    await sb.auth.signOut();
+    renderLogin();
+    return false;
+  }
+  return true;
+}
+
+async function loadMe(uid) {
+  const { data, error } = await sb.from('profiles').select('*').eq('id', uid).single();
+  if (error || !data) {
+    console.error('loadMe error:', error);
+    return false;
+  }
+  ME = data;
+  return true;
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { toast('⚠', 'Campos', 'Preencha e-mail e senha'); return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    toast('⚠', 'Login', error.message);
+    return;
+  }
+  await loadMe(data.user.id);
+  navigate('home');
+}
+
+async function doMagic() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { toast('⚠', 'E-mail', 'Informe seu e-mail'); return; }
+  const { error } = await sb.auth.signInWithOtp({ email });
+  if (error) { toast('⚠', 'Magic link', error.message); return; }
+  toast('✉', 'Link enviado', 'Verifique seu e-mail');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  ME = null;
+  renderLogin();
+}
+
+function renderLogin() {
+  document.querySelector('.nav')?.remove();
+  el.innerHTML = `
+    <div class="login">
+      <div class="login-top">
+        <div class="login-brand">Odara · Academy</div>
+        <h1 class="login-title">Bem-vindo<br>de volta.</h1>
+        <p class="login-sub">Sua jornada de aprendizado continua aqui.</p>
+      </div>
+      <div class="login-card">
+        <label class="login-label">E-mail</label>
+        <input id="login-email" class="login-input" type="email" placeholder="seu@email.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+        <div style="margin-top:14px"></div>
+        <label class="login-label">Senha</label>
+        <input id="login-pass" class="login-input" type="password" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="login-btn" onclick="doLogin()">Entrar</button>
+        <p class="login-help">Sem senha? <a onclick="doMagic()">Receber link por e-mail</a></p>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+async function navigate(screen, params = {}) {
+  CURRENT_SCREEN = screen;
+  if (!ME && screen !== 'login') { renderLogin(); return; }
+  el.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--od-gray)">Carregando…</div>';
+  try {
+    if (screen === 'home') await renderHome();
+    else if (screen === 'tracks') await renderTracks();
+    else if (screen === 'track') await renderTrack(params.id);
+    else if (screen === 'content') await renderContentViewer(params.id);
+    else if (screen === 'curadoria') await renderCuradoria();
+    else if (screen === 'profile') await renderProfile();
+  } catch (e) {
+    console.error('navigate error', e);
+    el.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div><p>Erro ao carregar tela.</p><p style="font-size:11px;margin-top:6px;color:#aaa">${e.message}</p></div>`;
+  }
+  renderNav();
+}
+
+function renderNav() {
+  let nav = document.querySelector('.nav');
+  const html = `
+    <div class="nav-item ${CURRENT_SCREEN === 'home' ? 'active' : ''}" onclick="navigate('home')">
+      <span class="icon">⌂</span><span>Início</span>
+    </div>
+    <div class="nav-item ${CURRENT_SCREEN === 'tracks' ? 'active' : ''}" onclick="navigate('tracks')">
+      <span class="icon">▤</span><span>Trilhas</span>
+    </div>
+    <div class="nav-item ${CURRENT_SCREEN === 'curadoria' ? 'active' : ''}" onclick="navigate('curadoria')">
+      <span class="icon">★</span><span>Curadoria</span>
+    </div>
+    <div class="nav-item ${CURRENT_SCREEN === 'profile' ? 'active' : ''}" onclick="navigate('profile')">
+      <span class="icon">●</span><span>Perfil</span>
+    </div>`;
+  if (!nav) {
+    nav = document.createElement('div');
+    nav.className = 'nav';
+    document.body.appendChild(nav);
+  }
+  nav.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════
+async function renderHome() {
+  const { data: tracks } = await sb.from('trilhas').select('*').eq('ativa', true).order('ordem');
+  const { data: prog } = await sb.from('progresso_conteudos').select('*').eq('profile_id', ME.id);
+  const { data: contents } = await sb.from('conteudos').select('id,modulo_id');
+  const { data: modules } = await sb.from('modulos').select('id,trilha_id');
+
+  const trackProgress = {};
+  (tracks || []).forEach(t => {
+    const mods = (modules || []).filter(m => m.trilha_id === t.id).map(m => m.id);
+    const tcontents = (contents || []).filter(c => mods.includes(c.modulo_id));
+    const done = tcontents.filter(c =>
+      (prog || []).find(p => p.conteudo_id === c.id && p.status === 'concluido')
+    ).length;
+    trackProgress[t.id] = {
+      total: tcontents.length,
+      done,
+      pct: tcontents.length > 0 ? Math.round((done / tcontents.length) * 100) : 0
+    };
+  });
+
+  const concluidas = Object.values(trackProgress).filter(p => p.pct === 100).length;
+  const totalTracks = (tracks || []).length;
+  const overallPct = totalTracks > 0 ? Math.round((concluidas / totalTracks) * 100) : 0;
+
+  // continue de onde parou
+  const inProgress = (tracks || []).find(t => trackProgress[t.id]?.pct > 0 && trackProgress[t.id]?.pct < 100);
+
+  // próximas 4 trilhas para a jornada
+  const journeyItems = (tracks || []).slice(0, 5);
+
+  el.innerHTML = `
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="header-brand">Odara · Academy</div>
+          <div class="header-greeting">${greeting()}, ${(ME.nome || '').split(' ')[0] || 'colaborador'}.</div>
+        </div>
+        <div class="avatar">${getInitials(ME.nome)}</div>
+      </div>
+      <div class="journey-card">
+        <div class="journey-label">Sua jornada</div>
+        <div class="journey-numbers">
+          <span class="big">${concluidas}</span>
+          <span class="small">de ${totalTracks} trilha${totalTracks !== 1 ? 's' : ''} concluída${concluidas !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="journey-bar"><div class="journey-fill" style="width:${overallPct}%"></div></div>
+      </div>
+    </div>
+
+    ${inProgress ? `
+    <div class="section">
+      <div class="section-label">Continue de onde parou</div>
+      <div class="card" onclick="navigate('track',{id:'${inProgress.id}'})">
+        <div class="card-row">
+          <div class="card-icon">${inProgress.icone || '★'}</div>
+          <div class="card-body">
+            <div class="card-title">${inProgress.titulo}</div>
+            <div class="card-sub">${trackProgress[inProgress.id].done} de ${trackProgress[inProgress.id].total} conteúdos · ${trackProgress[inProgress.id].pct}%</div>
+          </div>
+        </div>
+        <div class="dots">${dotsHtml(trackProgress[inProgress.id])}</div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="section">
+      <div class="section-label">
+        <span>Sua trilha de aprendizado</span>
+        <span class="section-link" onclick="navigate('tracks')">Ver todas →</span>
+      </div>
+      <div class="journey">
+        <div class="journey-line"></div>
+        <div class="journey-line-fill" style="height:${Math.max(0, (concluidas / Math.max(1, journeyItems.length)) * 100)}%"></div>
+        ${journeyItems.map((t, i) => {
+          const p = trackProgress[t.id] || { pct: 0, done: 0, total: 0 };
+          const done = p.pct === 100;
+          const current = !done && p.pct > 0;
+          const locked = !done && !current && i > 0 && trackProgress[journeyItems[i-1].id]?.pct < 100;
+          let bullet, status;
+          if (done) { bullet = '<div class="journey-bullet done">✓</div>'; status = `Concluída · ${p.done} conteúdos`; }
+          else if (current) { bullet = '<div class="journey-bullet current"></div>'; status = `Em andamento · ${p.pct}%`; }
+          else if (locked) { bullet = '<div class="journey-bullet"></div>'; status = 'Bloqueada'; }
+          else { bullet = '<div class="journey-bullet"></div>'; status = 'Próxima trilha'; }
+          return `
+            <div class="journey-item" ${locked ? '' : `onclick="navigate('track',{id:'${t.id}'})"`}>
+              ${bullet}
+              <div class="journey-card-item ${current ? 'current' : ''} ${locked ? 'locked' : ''}">
+                <div class="journey-title">${t.titulo}</div>
+                <div class="journey-meta">${status}</div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:24px">
+      <div class="card" style="background:var(--od-black);color:#fff;border:none" onclick="navigate('curadoria')">
+        <div class="card-row">
+          <div class="card-icon dark">★</div>
+          <div class="card-body">
+            <div class="card-title" style="color:var(--od-yellow)">Curadoria externa</div>
+            <div class="card-sub" style="color:#aaa">Cursos e materiais gratuitos da internet</div>
+          </div>
+          <div class="card-arrow" style="color:var(--od-yellow)">→</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+  `;
+}
+
+function dotsHtml(p) {
+  const dots = [];
+  for (let i = 0; i < Math.min(p.total, 8); i++) {
+    if (i < p.done) dots.push('<div class="dot done"></div>');
+    else if (i === p.done) dots.push('<div class="dot current"></div>');
+    else dots.push('<div class="dot"></div>');
+  }
+  return dots.join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TRACKS LIST
+// ═══════════════════════════════════════════════════════════
+async function renderTracks() {
+  const { data: tracks } = await sb.from('trilhas').select('*').eq('ativa', true).order('ordem');
+  const { data: prog } = await sb.from('progresso_conteudos').select('*').eq('profile_id', ME.id);
+  const { data: contents } = await sb.from('conteudos').select('id,modulo_id');
+  const { data: modules } = await sb.from('modulos').select('id,trilha_id');
+
+  el.innerHTML = `
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="header-brand">Odara · Academy</div>
+          <div class="header-greeting">Trilhas</div>
+        </div>
+        <div class="avatar">${getInitials(ME.nome)}</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Todas as trilhas disponíveis</div>
+      ${(tracks || []).map(t => {
+        const mods = (modules || []).filter(m => m.trilha_id === t.id).map(m => m.id);
+        const tcontents = (contents || []).filter(c => mods.includes(c.modulo_id));
+        const done = tcontents.filter(c => (prog || []).find(p => p.conteudo_id === c.id && p.status === 'concluido')).length;
+        const pct = tcontents.length > 0 ? Math.round((done / tcontents.length) * 100) : 0;
+        const isDone = pct === 100;
+        const inProgress = pct > 0 && pct < 100;
+        return `
+          <div class="track-card" onclick="navigate('track',{id:'${t.id}'})">
+            <div class="track-card-row">
+              <div class="track-card-icon ${isDone ? 'done' : (inProgress ? 'active' : '')}">${t.icone || '★'}</div>
+              <div class="track-card-body">
+                <div class="track-card-title">${t.titulo}</div>
+                <div class="track-card-meta">${tcontents.length} conteúdo${tcontents.length !== 1 ? 's' : ''} · ${t.duracao_estimada || '—'} min</div>
+                <div class="track-card-bar"><div class="track-card-fill" style="width:${pct}%"></div></div>
+                <div class="track-card-status ${isDone ? 'done' : (inProgress ? 'progress' : 'locked')}">
+                  ${isDone ? '✓ Concluída' : (inProgress ? `${pct}% concluído` : 'Não iniciada')}
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join('') || '<div class="empty"><div class="empty-icon">📚</div><p>Nenhuma trilha disponível ainda.</p></div>'}
+    </div>
+    <div style="height:24px"></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TRACK DETAIL — módulos e conteúdos
+// ═══════════════════════════════════════════════════════════
+async function renderTrack(trackId) {
+  const { data: track } = await sb.from('trilhas').select('*').eq('id', trackId).single();
+  if (!track) { toast('⚠', 'Trilha', 'Não encontrada'); navigate('tracks'); return; }
+  CURRENT_TRACK = track;
+
+  const { data: mods } = await sb.from('modulos').select('*').eq('trilha_id', trackId).order('ordem');
+  const { data: contents } = await sb.from('conteudos').select('*').in('modulo_id', (mods || []).map(m => m.id)).order('ordem');
+  const { data: prog } = await sb.from('progresso_conteudos').select('*').eq('profile_id', ME.id);
+  const { data: avals } = await sb.from('avaliacoes').select('*,tentativas_avaliacao(*)').in('modulo_id', (mods || []).map(m => m.id));
+
+  const total = (contents || []).length;
+  const done = (contents || []).filter(c => (prog || []).find(p => p.conteudo_id === c.id && p.status === 'concluido')).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  let html = `
+    <div class="back-bar">
+      <div class="back-btn" onclick="navigate('tracks')">‹</div>
+      <div class="back-title">Trilha</div>
+    </div>
+    <div class="track-hero">
+      <h1>${track.titulo}</h1>
+      ${track.descricao ? `<p>${track.descricao}</p>` : ''}
+      <div class="track-stats">
+        <span><span class="track-stat-num">${total}</span> conteúdos</span>
+        <span><span class="track-stat-num">${(mods || []).length}</span> módulos</span>
+        <span><span class="track-stat-num">${pct}%</span> concluído</span>
+      </div>
+      <div class="track-progress-bar"><div class="track-progress-fill" style="width:${pct}%"></div></div>
+    </div>
+  `;
+
+  (mods || []).forEach((m, idx) => {
+    const mc = (contents || []).filter(c => c.modulo_id === m.id);
+    const ma = (avals || []).filter(a => a.modulo_id === m.id);
+    html += `
+      <div class="module">
+        <div class="module-head">
+          <span class="module-num">MÓDULO ${String(idx + 1).padStart(2, '0')}</span>
+        </div>
+        <div class="module-title" style="margin-bottom:10px">${m.titulo}</div>
+    `;
+    mc.forEach(c => {
+      const p = (prog || []).find(x => x.conteudo_id === c.id);
+      const isDone = p?.status === 'concluido';
+      html += `
+        <div class="content-item" onclick="navigate('content',{id:'${c.id}'})">
+          <div class="content-icon ${c.tipo}">${formatIcon(c.tipo)}</div>
+          <div class="content-body">
+            <div class="content-title">${c.titulo}</div>
+            <div class="content-meta">${c.tipo} · ${c.duracao_min || '—'} min</div>
+          </div>
+          <div class="check-circle ${isDone ? 'done' : ''}">${isDone ? '✓' : ''}</div>
+        </div>`;
+    });
+    ma.forEach(a => {
+      const tents = (a.tentativas_avaliacao || []).filter(t => t.profile_id === ME.id);
+      const aprov = tents.some(t => t.aprovado);
+      const todosFeitos = mc.every(c => (prog || []).find(p => p.conteudo_id === c.id && p.status === 'concluido'));
+      const locked = !todosFeitos;
+      html += `
+        <div class="content-item ${locked ? 'locked' : ''}" ${locked ? '' : `onclick="abrirQuiz('${a.id}')"`}>
+          <div class="content-icon test">${formatIcon('test')}</div>
+          <div class="content-body">
+            <div class="content-title">${a.titulo}</div>
+            <div class="content-meta">Avaliação · Nota mínima ${a.nota_minima}%${tents.length ? ` · ${tents.length}ª tentativa` : ''}</div>
+          </div>
+          <div class="check-circle ${aprov ? 'done' : (locked ? 'locked' : '')}">${aprov ? '✓' : (locked ? '🔒' : '')}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += '<div style="height:60px"></div>';
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONTENT VIEWER — vídeo embedado, marcação de progresso
+// ═══════════════════════════════════════════════════════════
+async function renderContentViewer(contentId) {
+  const { data: c } = await sb.from('conteudos').select('*').eq('id', contentId).single();
+  if (!c) { toast('⚠', 'Conteúdo', 'Não encontrado'); return; }
+  CURRENT_CONTENT = c;
+
+  // marca como em_andamento (best effort, ignora erros)
+  try {
+    await sb.from('progresso_conteudos').upsert({
+      profile_id: ME.id, conteudo_id: c.id, status: 'em_andamento',
+      iniciado_em: new Date().toISOString()
+    }, { onConflict: 'profile_id,conteudo_id', ignoreDuplicates: true });
+  } catch (e) { console.warn('upsert em_andamento falhou:', e); }
+
+  // verifica se já está concluído
+  const { data: pExist } = await sb.from('progresso_conteudos')
+    .select('*').eq('profile_id', ME.id).eq('conteudo_id', c.id).maybeSingle();
+  const jaCompleto = pExist?.status === 'concluido';
+
+  // monta o player conforme o tipo/url
+  let viewerMedia = '';
+  const ytId = ytExtract(c.url);
+  if (c.tipo === 'video' && ytId) {
+    viewerMedia = `<div class="viewer-video-frame">
+      <iframe src="https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1" allowfullscreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+    </div>`;
+  } else if (c.tipo === 'video' && c.url && (c.url.endsWith('.mp4') || c.url.endsWith('.webm'))) {
+    viewerMedia = `<div class="viewer-video-frame">
+      <video src="${c.url}" controls style="width:100%;height:100%;background:#000"></video>
+    </div>`;
+  } else if (c.tipo === 'image' && c.url) {
+    viewerMedia = `<div style="background:#000;text-align:center"><img src="${c.url}" style="max-width:100%;max-height:60vh;display:block;margin:0 auto"></div>`;
+  } else if (c.tipo === 'audio' && c.url) {
+    viewerMedia = `<div style="background:var(--od-black);padding:24px;text-align:center">
+      <div style="color:var(--od-yellow);font-size:42px;margin-bottom:16px">🎧</div>
+      <audio src="${c.url}" controls style="width:90%"></audio>
+    </div>`;
+  }
+
+  // recurso anexo (link externo / pdf / etc)
+  let resource = '';
+  if (c.url && c.tipo !== 'video' && c.tipo !== 'image' && c.tipo !== 'audio') {
+    const fmt = detectFormat(c.url);
+    const labels = {
+      pdf: 'Abrir PDF', doc: 'Baixar documento', sheet: 'Baixar planilha',
+      slide: 'Abrir apresentação', link: 'Abrir conteúdo'
+    };
+    resource = `
+      <div class="viewer-resource">
+        <div class="viewer-resource-icon">${formatIcon(fmt)}</div>
+        <div class="viewer-resource-text">
+          <div class="viewer-resource-title">${labels[fmt] || 'Material'}</div>
+          <div class="viewer-resource-sub">${c.url.split('/').pop().slice(0, 40)}</div>
+        </div>
+        <a href="${c.url}" target="_blank" rel="noopener">Abrir →</a>
+      </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="viewer-wrap">
+      <div class="back-bar">
+        <div class="back-btn" onclick="navigate('track',{id:'${c.modulo_id ? '' : ''}'})">‹</div>
+        <div class="back-title">Conteúdo</div>
+      </div>
+      ${viewerMedia}
+      <div class="viewer-content">
+        <div class="viewer-tag">${c.tipo}</div>
+        <h1 class="viewer-title">${c.titulo}</h1>
+        <div class="viewer-meta">
+          <span>⏱ ${c.duracao_min || '—'} min</span>
+          <span>+${c.xp_conclusao || 10} XP</span>
+        </div>
+        ${c.descricao ? `<div class="viewer-body">${c.descricao}</div>` : ''}
+        ${resource}
+      </div>
+      <div class="viewer-actions">
+        <button class="btn btn-secondary" onclick="voltarParaTrilha()">Voltar</button>
+        <button class="btn btn-primary ${jaCompleto ? 'done' : ''}" id="btn-conclude" onclick="marcarConcluido()">
+          ${jaCompleto ? '✓ Já concluído' : 'Marcar como concluído'}
+        </button>
+      </div>
+    </div>
+  `;
+
+  // ajusta o back-btn pra trilha correta
+  const { data: mod } = await sb.from('modulos').select('trilha_id').eq('id', c.modulo_id).single();
+  if (mod) {
+    document.querySelector('.back-btn').setAttribute('onclick', `navigate('track',{id:'${mod.trilha_id}'})`);
+  }
+}
+
+async function voltarParaTrilha() {
+  if (!CURRENT_CONTENT) { navigate('tracks'); return; }
+  const { data: mod } = await sb.from('modulos').select('trilha_id').eq('id', CURRENT_CONTENT.modulo_id).single();
+  navigate('track', { id: mod?.trilha_id });
+}
+
+// ─── FIX do bug de marcar conclusão ───
+// Antes: payload ficava sem alguns campos obrigatórios + sem await + onConflict mal escrito.
+// Agora: garante todos os campos, aguarda a resposta, captura erro RLS/422 e dá feedback.
+async function marcarConcluido() {
+  if (!CURRENT_CONTENT) return;
+  const btn = document.getElementById('btn-conclude');
+  if (btn.classList.contains('done')) {
+    voltarParaTrilha();
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+
+  const payload = {
+    profile_id: ME.id,
+    conteudo_id: CURRENT_CONTENT.id,
+    status: 'concluido',
+    iniciado_em: new Date().toISOString(),
+    concluido_em: new Date().toISOString(),
+    xp_ganho: CURRENT_CONTENT.xp_conclusao || 10
+  };
+
+  const { error } = await sb.from('progresso_conteudos')
+    .upsert(payload, { onConflict: 'profile_id,conteudo_id' });
+
+  if (error) {
+    console.error('Erro ao marcar conclusão:', error);
+    btn.disabled = false;
+    btn.textContent = 'Marcar como concluído';
+    toast('⚠', 'Erro', error.message || 'Tente novamente');
+    return;
+  }
+
+  // tudo certo
+  toast('✓', `+${payload.xp_ganho} XP`, 'Conteúdo concluído');
+  btn.classList.add('done');
+  btn.textContent = '✓ Concluído';
+  btn.disabled = false;
+  setTimeout(voltarParaTrilha, 900);
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════════════════════
+async function abrirQuiz(avalId) {
+  const { data: aval } = await sb.from('avaliacoes').select('*').eq('id', avalId).single();
+  const { data: questoes } = await sb.from('questoes').select('*,opcoes(*)').eq('avaliacao_id', avalId).order('ordem');
+  CURRENT_QUIZ = { aval, questoes: questoes || [], idx: 0, respostas: {}, acertos: 0 };
+  renderQuizStep();
+  document.getElementById('modal-quiz')?.classList.add('on');
+}
+
+function renderQuizStep() {
+  const q = CURRENT_QUIZ.questoes[CURRENT_QUIZ.idx];
+  if (!q) return finalizarQuiz();
+  let modal = document.getElementById('modal-quiz');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'modal-quiz';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-head">
+        <div class="modal-close" onclick="document.getElementById('modal-quiz').classList.remove('on')">×</div>
+        <div class="modal-title">${CURRENT_QUIZ.aval.titulo}</div>
+      </div>
+      <div class="modal-body">
+        <div class="q-num">PERGUNTA ${CURRENT_QUIZ.idx + 1} DE ${CURRENT_QUIZ.questoes.length}</div>
+        <div class="q-text">${q.enunciado}</div>
+        <div id="q-opts">
+          ${(q.opcoes || []).map(o => `
+            <div class="q-opt" onclick="responderQuiz('${o.id}',${o.correta ? 'true' : 'false'})">${o.texto}</div>
+          `).join('')}
+        </div>
+        <div id="q-feedback"></div>
+      </div>
+    </div>`;
+  modal.classList.add('on');
+}
+
+function responderQuiz(opcaoId, correta) {
+  CURRENT_QUIZ.respostas[CURRENT_QUIZ.questoes[CURRENT_QUIZ.idx].id] = opcaoId;
+  if (correta) CURRENT_QUIZ.acertos++;
+  document.querySelectorAll('#q-opts .q-opt').forEach(o => o.style.pointerEvents = 'none');
+  event.target.classList.add(correta ? 'correct' : 'wrong');
+  const fb = document.getElementById('q-feedback');
+  fb.innerHTML = `<div class="q-feedback ${correta ? 'ok' : 'err'}">${correta ? '✓ Resposta correta!' : '✗ Resposta incorreta.'}</div>
+    <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="proxQuiz()">${CURRENT_QUIZ.idx + 1 < CURRENT_QUIZ.questoes.length ? 'Próxima' : 'Finalizar'}</button>`;
+}
+
+function proxQuiz() {
+  CURRENT_QUIZ.idx++;
+  renderQuizStep();
+}
+
+async function finalizarQuiz() {
+  const total = CURRENT_QUIZ.questoes.length;
+  const pct = Math.round((CURRENT_QUIZ.acertos / total) * 100);
+  const aprovado = pct >= CURRENT_QUIZ.aval.nota_minima;
+
+  await sb.from('tentativas_avaliacao').insert({
+    profile_id: ME.id,
+    avaliacao_id: CURRENT_QUIZ.aval.id,
+    nota: pct,
+    aprovado,
+    respostas: CURRENT_QUIZ.respostas
+  });
+
+  document.getElementById('modal-quiz').innerHTML = `
+    <div class="modal-content">
+      <div class="modal-body" style="text-align:center;padding:40px 24px">
+        <div style="font-size:60px;margin-bottom:14px">${aprovado ? '🎯' : '↻'}</div>
+        <div class="font-display" style="font-size:30px;font-weight:700;color:var(--od-black);margin-bottom:6px">${aprovado ? 'Aprovado!' : 'Quase lá'}</div>
+        <div style="color:var(--od-gray);font-size:14px;margin-bottom:24px">Você acertou ${CURRENT_QUIZ.acertos} de ${total} (${pct}%)</div>
+        <button class="btn btn-primary" onclick="document.getElementById('modal-quiz').classList.remove('on');navigate('track',{id:'${CURRENT_TRACK?.id || ''}'})">Voltar à trilha</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CURADORIA EXTERNA — nova página!
+// ═══════════════════════════════════════════════════════════
+const AREAS_CURADORIA = ['todas', 'Qualidade', 'Produção', 'Liderança', 'Segurança', 'Manutenção', 'Geral'];
+
+async function renderCuradoria() {
+  const { data, error } = await sb.from('curadoria_externa')
+    .select('*')
+    .eq('ativo', true)
+    .order('destaque', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div><p>Erro ao carregar.</p>
+      <p style="font-size:11px;margin-top:8px;color:#aaa">${error.message}</p>
+      <p style="font-size:12px;margin-top:14px;color:var(--od-gray)">Verifique se executou o <code>supabase-curadoria.sql</code> no Supabase.</p></div>`;
+    return;
+  }
+
+  const items = data || [];
+  const filtered = CURRENT_AREA === 'todas' ? items : items.filter(i => i.area === CURRENT_AREA);
+  const destaques = filtered.filter(i => i.destaque);
+  const restantes = filtered.filter(i => !i.destaque);
+
+  el.innerHTML = `
+    <div class="curadoria-hero">
+      <h1>Curadoria<br>externa</h1>
+      <p>Cursos, vídeos, artigos e materiais gratuitos da internet, escolhidos para o desenvolvimento na indústria de alimentos.</p>
+    </div>
+    <div class="area-pills">
+      ${AREAS_CURADORIA.map(a => `
+        <div class="area-pill ${CURRENT_AREA === a ? 'active' : ''}" onclick="filtrarArea('${a}')">${a === 'todas' ? 'Todas' : a}</div>
+      `).join('')}
+    </div>
+    <div class="section" style="margin-top:8px">
+      ${destaques.length ? `<div class="section-label">★ Em destaque</div>
+        ${destaques.map(curaCard).join('')}` : ''}
+      ${restantes.length ? `<div class="section-label" style="margin-top:18px">${destaques.length ? 'Mais conteúdos' : 'Conteúdos'}</div>
+        ${restantes.map(curaCard).join('')}` : ''}
+      ${!filtered.length ? `<div class="empty"><div class="empty-icon">📭</div><p>Nenhum conteúdo nesta área ainda.</p></div>` : ''}
+    </div>
+    <div style="height:24px"></div>
+  `;
+}
+
+function curaCard(it) {
+  const dur = it.duracao_min ? (it.duracao_min < 60 ? `${it.duracao_min} min` : `${Math.round(it.duracao_min/60*10)/10}h`) : '';
+  return `
+    <div class="cur-item ${it.destaque ? 'destaque' : ''}" onclick="abrirCuradoria('${it.id}','${(it.url || '').replace(/'/g, "\\'")}')">
+      <div class="cur-row">
+        <div class="cur-format ${it.formato}">${formatIcon(it.formato)}</div>
+        <div class="cur-body">
+          <div class="cur-title">${it.titulo}</div>
+          ${it.descricao ? `<div class="cur-desc">${it.descricao}</div>` : ''}
+          <div class="cur-meta">
+            ${it.destaque ? '<span class="cur-tag dest">★ Destaque</span>' : ''}
+            <span class="cur-tag">${it.area}</span>
+            <span class="cur-tag">${it.formato}</span>
+            ${dur ? `<span class="cur-tag">${dur}</span>` : ''}
+            ${it.fonte ? `<span class="cur-source">via ${it.fonte}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function filtrarArea(area) {
+  CURRENT_AREA = area;
+  renderCuradoria();
+}
+
+async function abrirCuradoria(id, url) {
+  // registra o acesso (best effort)
+  try { await sb.from('curadoria_acessos').insert({ profile_id: ME.id, curadoria_id: id }); } catch {}
+  if (url) window.open(url, '_blank', 'noopener');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════════════════════════
+async function renderProfile() {
+  const { data: prog } = await sb.from('progresso_conteudos').select('*').eq('profile_id', ME.id);
+  const { data: tracks } = await sb.from('trilhas').select('id').eq('ativa', true);
+  const { data: contents } = await sb.from('conteudos').select('id,modulo_id');
+  const { data: modules } = await sb.from('modulos').select('id,trilha_id');
+
+  const totalXP = (prog || []).reduce((s, p) => s + (p.xp_ganho || 0), 0);
+  const concluidas = (tracks || []).filter(t => {
+    const mods = (modules || []).filter(m => m.trilha_id === t.id).map(m => m.id);
+    const tc = (contents || []).filter(c => mods.includes(c.modulo_id));
+    return tc.length > 0 && tc.every(c => (prog || []).find(p => p.conteudo_id === c.id && p.status === 'concluido'));
+  }).length;
+  const conteudosFeitos = (prog || []).filter(p => p.status === 'concluido').length;
+
+  el.innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-avatar">${getInitials(ME.nome)}</div>
+      <div class="profile-name">${ME.nome || 'Colaborador'}</div>
+      <div class="profile-role">${ME.cargo || ''}${ME.area ? ' · ' + ME.area : ''}</div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <div class="profile-stat-num">${totalXP}</div>
+        <div class="profile-stat-label">XP</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-num">${concluidas}</div>
+        <div class="profile-stat-label">Trilhas</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-num">${conteudosFeitos}</div>
+        <div class="profile-stat-label">Conteúdos</div>
+      </div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-row" onclick="navigate('tracks')">
+        <div class="profile-row-icon">▤</div>
+        <div class="profile-row-text">Minhas trilhas</div>
+        <div class="profile-row-arrow">›</div>
+      </div>
+      <div class="profile-row" onclick="navigate('curadoria')">
+        <div class="profile-row-icon">★</div>
+        <div class="profile-row-text">Curadoria externa</div>
+        <div class="profile-row-arrow">›</div>
+      </div>
+      <div class="profile-row" onclick="window.location.href='academy-gestao.html'">
+        <div class="profile-row-icon">⚙</div>
+        <div class="profile-row-text">Painel de gestão</div>
+        <div class="profile-row-arrow">›</div>
+      </div>
+      <div class="profile-row" onclick="doLogout()" style="color:var(--od-red)">
+        <div class="profile-row-icon" style="background:#FFEBEE;color:var(--od-red)">⏻</div>
+        <div class="profile-row-text">Sair</div>
+        <div class="profile-row-arrow">›</div>
+      </div>
+    </div>
+    <div style="height:24px"></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+(async function init() {
+  try {
+    await waitForSupabase();
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+    const ok = await checkAuth();
+    if (ok) await navigate('home');
+
+    // listener de auth para magic link (registrado só depois do sb existir)
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session && !ME) {
+        const ok = await loadMe(session.user.id);
+        if (ok) await navigate('home');
+      }
+    });
+  } catch (e) {
+    console.error('Boot error:', e);
+    el.innerHTML = `
+      <div style="padding:60px 24px;text-align:center;font-family:system-ui,sans-serif;color:#0C0C0C">
+        <div style="font-size:56px;margin-bottom:18px">⚠</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;margin-bottom:10px">Algo deu errado</div>
+        <div style="color:#565555;font-size:14px;line-height:1.5;max-width:340px;margin:0 auto 20px">${e.message || 'Erro desconhecido'}</div>
+        <button onclick="location.reload()" style="background:#FFB81D;color:#0C0C0C;border:none;padding:12px 24px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px">Tentar novamente</button>
+        <div style="margin-top:14px"><a onclick="if(window.sb)sb.auth.signOut().then(()=>location.reload());else location.reload()" style="color:#EE2737;font-size:12px;cursor:pointer;text-decoration:underline">Sair e entrar de novo</a></div>
+      </div>`;
+  }
+})();
+</script>
+</body>
+</html>
