@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0C0C0C">
+<title>Odara Academy — Gestor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="odara.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"
+        onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';document.head.appendChild(s);"></script>
+<script src="odara-core.js"></script>
+<style>
+/* ═══════ LAYOUT PRINCIPAL (desktop amplo) ═══════ */
+body{background:#FAF3E1}
+#app{min-height:100vh}
+
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh;gap:0}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr;padding-bottom:80px}
+}
+
+.sidebar{
+  background:var(--od-black);color:#fff;padding:24px 16px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+@media (max-width:900px){
+  .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;padding:8px 0 max(8px,env(safe-area-inset-bottom));display:flex;gap:0;border-top:0.5px solid rgba(255,255,255,0.1);z-index:100}
+  .sidebar-brand,.sidebar-user{display:none}
+  .sidebar-nav{display:flex;flex:1;gap:0}
+  .sidebar-item{flex:1;flex-direction:column;gap:3px;padding:8px 4px;font-size:10.5px;letter-spacing:0.3px;border-radius:0;justify-content:center}
+  .sidebar-item .icon{font-size:18px}
+}
+
+.sidebar-brand{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  color:var(--od-gray-light);letter-spacing:3px;text-transform:uppercase;
+  padding:4px 12px 20px;border-bottom:0.5px solid rgba(255,255,255,0.08);margin-bottom:14px;
+}
+.sidebar-brand span{color:var(--od-yellow)}
+
+.sidebar-nav{display:flex;flex-direction:column;gap:3px}
+.sidebar-item{
+  display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;
+  color:#888;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;
+}
+.sidebar-item:hover{background:rgba(255,255,255,0.04);color:#fff}
+.sidebar-item.active{background:rgba(255,184,29,0.12);color:var(--od-yellow)}
+.sidebar-item .icon{font-size:18px;width:22px;text-align:center}
+.sidebar-item .badge{
+  margin-left:auto;background:var(--od-red);color:#fff;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:99px;min-width:20px;text-align:center;
+}
+
+.sidebar-user{
+  margin-top:auto;padding:14px;border-top:0.5px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;gap:10px;position:absolute;bottom:16px;left:16px;right:16px;
+}
+.sidebar-user-avatar{width:36px;height:36px;border-radius:50%;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;font-family:'Barlow Condensed',sans-serif;flex-shrink:0}
+.sidebar-user-info{flex:1;min-width:0}
+.sidebar-user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-role{font-size:11px;color:var(--od-gray-light)}
+.sidebar-user-logout{color:var(--od-red);cursor:pointer;font-size:16px;padding:4px}
+
+/* ═══════ MAIN CONTENT ═══════ */
+.main{padding:32px 40px 48px;overflow-x:auto}
+@media (max-width:900px){.main{padding:20px 18px 40px}}
+
+.main-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.main-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--od-black);letter-spacing:-0.01em;line-height:1}
+.main-subtitle{color:var(--od-gray);font-size:14px;margin-top:4px}
+.main-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ═══════ KPIS ═══════ */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+.kpi{background:#fff;border-radius:var(--radius);padding:18px 20px;border:0.5px solid var(--od-line)}
+.kpi-label{font-size:11px;color:var(--od-gray);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.kpi-value{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;color:var(--od-black);line-height:1}
+.kpi-delta{font-size:12px;color:var(--od-gray);margin-top:4px}
+.kpi.accent{background:var(--od-black);color:#fff}
+.kpi.accent .kpi-label{color:var(--od-gray-light)}
+.kpi.accent .kpi-value{color:var(--od-yellow)}
+.kpi.accent .kpi-delta{color:#aaa}
+
+/* ═══════ APROVAÇÃO / CARD ═══════ */
+.approval-card{
+  background:#fff;border-radius:var(--radius);padding:16px 18px;border:0.5px solid var(--od-line);
+  display:flex;align-items:center;gap:14px;margin-bottom:10px;
+}
+.approval-card.urgent{border-color:var(--od-red);background:linear-gradient(90deg,var(--od-red-soft) 0%,#fff 40%)}
+.approval-avatar{width:44px;height:44px;border-radius:50%;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif}
+.approval-body{flex:1;min-width:0}
+.approval-name{font-size:15px;font-weight:600;color:var(--od-black)}
+.approval-sub{font-size:12.5px;color:var(--od-gray);margin-top:2px}
+.approval-levels{display:flex;align-items:center;gap:8px;margin-top:6px}
+.level-badge{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;background:var(--od-cream-dark);color:var(--od-gray)}
+.level-badge.new{background:var(--od-yellow);color:var(--od-black)}
+.approval-actions{display:flex;gap:8px;flex-shrink:0}
+@media (max-width:700px){
+  .approval-card{flex-direction:column;align-items:stretch}
+  .approval-actions{justify-content:flex-end}
+}
+
+/* ═══════ TABELA simples ═══════ */
+.table-wrap{background:#fff;border-radius:var(--radius);border:0.5px solid var(--od-line);overflow:hidden;overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+table.tbl thead th{background:var(--od-cream-dark);text-align:left;padding:12px 14px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--od-gray);font-weight:700;border-bottom:0.5px solid var(--od-line)}
+table.tbl tbody td{padding:13px 14px;border-bottom:0.5px solid var(--od-line);vertical-align:middle}
+table.tbl tbody tr:last-child td{border-bottom:none}
+table.tbl tbody tr:hover{background:var(--od-cream)}
+table.tbl .progress-bar{height:6px;background:var(--od-cream-dark);border-radius:99px;overflow:hidden;min-width:80px}
+table.tbl .progress-fill{height:100%;background:var(--od-yellow);border-radius:99px}
+.avatar-mini{width:30px;height:30px;border-radius:50%;background:var(--od-cream-dark);color:var(--od-black);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;font-family:'Barlow Condensed',sans-serif;margin-right:8px;vertical-align:middle}
+
+/* ═══════ MATRIZ ═══════ */
+.matrix-wrap{overflow-x:auto;background:#fff;border-radius:var(--radius);border:0.5px solid var(--od-line)}
+table.matrix{border-collapse:collapse;font-size:12.5px;width:100%;min-width:720px}
+table.matrix th,table.matrix td{padding:8px 10px;text-align:center;border-right:0.5px solid var(--od-line);border-bottom:0.5px solid var(--od-line)}
+table.matrix thead th{background:var(--od-cream-dark);font-size:11px;letter-spacing:0.5px;font-weight:700;color:var(--od-gray);text-transform:uppercase;padding:10px 8px;vertical-align:bottom;writing-mode:vertical-rl;transform:rotate(180deg);height:110px;white-space:nowrap}
+table.matrix thead th.sticky-col{writing-mode:horizontal-tb;transform:none;text-align:left;padding-left:16px;position:sticky;left:0;background:var(--od-cream-dark);z-index:2}
+table.matrix tbody td.sticky-col{position:sticky;left:0;background:#fff;text-align:left;padding-left:16px;font-weight:600;font-size:13px;min-width:180px;border-right:2px solid var(--od-line)}
+table.matrix tbody tr:hover td{background:var(--od-cream)}
+.nivel-cell{display:inline-flex;width:30px;height:30px;border-radius:8px;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif}
+.nivel-0{background:var(--od-cream-deep);color:var(--od-gray-light)}
+.nivel-1{background:#FFE4A8;color:#8A5E00}
+.nivel-2{background:#FFB81D;color:var(--od-black)}
+.nivel-3{background:#E5A300;color:#fff}
+.nivel-4{background:var(--od-black);color:var(--od-yellow)}
+.gap-badge{display:inline-block;background:var(--od-red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;margin-left:4px;vertical-align:super}
+
+/* ═══════ FILTRO / SEARCH ═══════ */
+.filter-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.filter-bar .input{flex:1;min-width:200px;max-width:340px}
+
+/* ═══════ TABS ═══════ */
+.tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--od-line);margin-bottom:22px;overflow-x:auto}
+.tab{padding:11px 18px;font-size:13px;font-weight:600;color:var(--od-gray);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab:hover{color:var(--od-black)}
+.tab.active{color:var(--od-black);border-bottom-color:var(--od-yellow)}
+
+/* ═══════ CARD DE TEAM ═══════ */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.team-card{background:#fff;border-radius:var(--radius);padding:18px;border:0.5px solid var(--od-line);cursor:pointer;transition:transform .12s,border-color .12s}
+.team-card:hover{transform:translateY(-2px);border-color:var(--od-line-strong)}
+.team-card-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.team-avatar{width:44px;height:44px;border-radius:50%;background:var(--od-cream-dark);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Barlow Condensed',sans-serif}
+.team-name{font-size:15px;font-weight:600}
+.team-role{font-size:12px;color:var(--od-gray)}
+.team-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:12px;border-top:0.5px solid var(--od-line)}
+.team-stat{text-align:center}
+.team-stat-num{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--od-black)}
+.team-stat-label{font-size:10px;color:var(--od-gray);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+</style>
+</head>
+<body>
+<div id="app"><div class="loading"><div class="spinner"></div><p>Carregando…</p></div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ODARA ACADEMY — PAINEL DO GESTOR
+// ═══════════════════════════════════════════════════════════
+
+let VIEW = 'aprovacoes';
+let TEAM_CACHE = null;
+let COMPETENCIAS_CACHE = null;
+const root = document.getElementById('app');
+
+async function boot() {
+  try {
+    await ODARA.initSupabase();
+    const me = await ODARA.loadMe();
+    if (!me) { ODARA.renderLogin(root, { title:'Painel do Gestor', onSuccess: afterLogin }); return; }
+    await afterLogin(me);
+  } catch (e) {
+    console.error(e);
+    root.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div><p>${e.message}</p>
+      <button class="btn btn-primary" onclick="location.reload()" style="margin-top:14px">Tentar novamente</button></div>`;
+  }
+}
+
+async function afterLogin(me) {
+  if (!['gestor','supervisor','admin'].includes(me.role)) {
+    ODARA.renderForbidden(root, ['gestor','supervisor','admin']);
+    return;
+  }
+  await renderShell();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SHELL com sidebar
+// ═══════════════════════════════════════════════════════════
+async function renderShell() {
+  const me = ODARA.ME;
+  const pendentes = await countPendentes();
+
+  root.innerHTML = `
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">Odara · <span>Gestor</span></div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item ${VIEW==='aprovacoes'?'active':''}" onclick="go('aprovacoes')">
+            <span class="icon">✓</span><span>Aprovações</span>
+            ${pendentes>0?`<span class="badge">${pendentes}</span>`:''}
+          </div>
+          <div class="sidebar-item ${VIEW==='equipe'?'active':''}" onclick="go('equipe')">
+            <span class="icon">◈</span><span>Minha equipe</span>
+          </div>
+          <div class="sidebar-item ${VIEW==='matriz'?'active':''}" onclick="go('matriz')">
+            <span class="icon">▦</span><span>Matriz da equipe</span>
+          </div>
+          <div class="sidebar-item ${VIEW==='trilhas'?'active':''}" onclick="go('trilhas')">
+            <span class="icon">▤</span><span>Atribuir trilhas</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='index.html'">
+            <span class="icon">⌂</span><span>App colaborador</span>
+          </div>
+          ${me.role==='admin'?`
+          <div class="sidebar-item" onclick="window.location.href='academy-admin.html'">
+            <span class="icon">⚙</span><span>Admin</span>
+          </div>`:''}
+        </nav>
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">${ODARA.getInitials(me.nome)}</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">${me.nome||'Gestor'}</div>
+            <div class="sidebar-user-role">${me.role}</div>
+          </div>
+          <div class="sidebar-user-logout" onclick="ODARA.signOut().then(()=>location.reload())" title="Sair">⏻</div>
+        </div>
+      </aside>
+      <main class="main" id="main-content"><div class="loading"><div class="spinner"></div></div></main>
+    </div>
+  `;
+
+  await renderView();
+}
+
+async function go(view) {
+  VIEW = view;
+  await renderShell();
+}
+
+async function renderView() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    if (VIEW === 'aprovacoes') await renderAprovacoes(main);
+    else if (VIEW === 'equipe')  await renderEquipe(main);
+    else if (VIEW === 'matriz')  await renderMatriz(main);
+    else if (VIEW === 'trilhas') await renderTrilhas(main);
+  } catch (e) {
+    console.error(e);
+    main.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div><p>${e.message}</p></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// APROVAÇÕES pendentes
+// ═══════════════════════════════════════════════════════════
+async function countPendentes() {
+  const { sb, ME } = ODARA;
+  const { count } = await sb.from('progressoes_competencia')
+    .select('*', { count: 'exact', head: true })
+    .or(`supervisor_id.eq.${ME.id},facilitador_id.eq.${ME.id}`)
+    .or('supervisor_status.eq.pendente,facilitador_status.eq.pendente');
+  return count || 0;
+}
+
+async function renderAprovacoes(main) {
+  const { sb, ME } = ODARA;
+  const { data: progs, error } = await sb.from('progressoes_competencia')
+    .select('*, profiles!progressoes_competencia_profile_id_fkey(nome,cargo,area), competencias(nome,categoria)')
+    .or(`supervisor_id.eq.${ME.id},facilitador_id.eq.${ME.id}`)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) throw error;
+
+  const pendentes = (progs||[]).filter(p => {
+    const isSup = p.supervisor_id === ME.id;
+    const isFac = p.facilitador_id === ME.id;
+    return (isSup && p.supervisor_status === 'pendente') || (isFac && p.facilitador_status === 'pendente');
+  });
+  const historico = (progs||[]).filter(p => !pendentes.includes(p)).slice(0,10);
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Aprovações pendentes</h1>
+        <p class="main-subtitle">Progressões de competência aguardando sua validação</p>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi accent">
+        <div class="kpi-label">Aguardando você</div>
+        <div class="kpi-value">${pendentes.length}</div>
+        <div class="kpi-delta">${pendentes.filter(p => ODARA.daysAgo(p.created_at) >= 7).length} há 7+ dias</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Aprovadas (30d)</div>
+        <div class="kpi-value">${historico.filter(h=>h.supervisor_status==='aprovado'||h.facilitador_status==='aprovado').length}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Rejeitadas (30d)</div>
+        <div class="kpi-value">${historico.filter(h=>h.supervisor_status==='rejeitado'||h.facilitador_status==='rejeitado').length}</div>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;margin:24px 0 12px">Pendentes</h3>
+    ${pendentes.length === 0 ? `<div class="empty"><div class="empty-icon">✓</div><p class="empty-text">Nenhuma aprovação pendente. Tudo em dia!</p></div>` :
+      pendentes.map(p => aprovalCard(p)).join('')}
+
+    <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;margin:32px 0 12px">Histórico recente</h3>
+    ${historico.length === 0 ? `<div class="empty"><p class="empty-text">Sem histórico ainda.</p></div>` :
+      `<div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Colaborador</th><th>Competência</th><th>Nível</th><th>Status</th><th>Quando</th></tr></thead>
+        <tbody>
+        ${historico.map(h => {
+          const isSup = h.supervisor_id === ME.id;
+          const st = isSup ? h.supervisor_status : h.facilitador_status;
+          const quando = isSup ? h.supervisor_em : h.facilitador_em;
+          return `<tr>
+            <td><span class="avatar-mini">${ODARA.getInitials(h.profiles?.nome)}</span>${h.profiles?.nome || '—'}</td>
+            <td>${h.competencias?.nome || '—'}</td>
+            <td><span class="level-badge new">${ODARA.NIVEL_SHORT[h.nivel_solicitado]}</span></td>
+            <td><span class="pill ${st==='aprovado'?'green':st==='rejeitado'?'red':''}">${st||'—'}</span></td>
+            <td style="color:var(--od-gray);font-size:12px">${ODARA.fmtDateTime(quando)}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table></div>`
+    }
+  `;
+}
+
+function aprovalCard(p) {
+  const dias = ODARA.daysAgo(p.created_at);
+  const urgent = dias >= 7;
+  return `
+    <div class="approval-card ${urgent?'urgent':''}">
+      <div class="approval-avatar">${ODARA.getInitials(p.profiles?.nome)}</div>
+      <div class="approval-body">
+        <div class="approval-name">${p.profiles?.nome || '—'}</div>
+        <div class="approval-sub">${p.competencias?.nome || '—'} · ${p.profiles?.cargo || ''} ${dias>0?'· '+dias+' dias aguardando':'· hoje'}</div>
+        <div class="approval-levels">
+          <span class="level-badge">${ODARA.NIVEL_SHORT[p.nivel_anterior] || '—'}</span>
+          <span style="color:var(--od-gray-light);font-size:14px">→</span>
+          <span class="level-badge new">${ODARA.NIVEL_SHORT[p.nivel_solicitado]}</span>
+          ${p.obs_colaborador?`<span style="color:var(--od-gray);font-size:11.5px;margin-left:8px;font-style:italic">"${p.obs_colaborador.slice(0,60)}${p.obs_colaborador.length>60?'…':''}"</span>`:''}
+        </div>
+      </div>
+      <div class="approval-actions">
+        <button class="btn btn-secondary btn-sm" onclick="abrirAprovacao('${p.id}')">Revisar</button>
+        <button class="btn btn-primary btn-sm" onclick="decidir('${p.id}',true)">✓ Aprovar</button>
+      </div>
+    </div>`;
+}
+
+async function abrirAprovacao(id) {
+  const { sb } = ODARA;
+  const { data: p } = await sb.from('progressoes_competencia')
+    .select('*, profiles!progressoes_competencia_profile_id_fkey(nome,cargo,area), competencias(nome,categoria)')
+    .eq('id', id).single();
+  if (!p) return;
+
+  showModal(`
+    <div class="modal-head">
+      <div class="modal-title">Revisar progressão</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:18px">
+        <div class="approval-avatar" style="margin:0 auto 10px;width:64px;height:64px;font-size:18px">${ODARA.getInitials(p.profiles?.nome)}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700">${p.profiles?.nome}</div>
+        <div style="font-size:13px;color:var(--od-gray)">${p.profiles?.cargo||''} · ${p.profiles?.area||''}</div>
+      </div>
+      <div style="background:#fff;border:0.5px solid var(--od-line);border-radius:12px;padding:14px;margin-bottom:14px">
+        <div class="label" style="margin-bottom:4px">Competência</div>
+        <div style="font-size:15px;font-weight:600">${p.competencias?.nome || '—'}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+          <span class="level-badge">${ODARA.NIVEL_LABEL[p.nivel_anterior] || 'N/A'}</span>
+          <span style="color:var(--od-gray)">→</span>
+          <span class="level-badge new">${ODARA.NIVEL_LABEL[p.nivel_solicitado]}</span>
+        </div>
+      </div>
+      ${p.obs_colaborador?`
+        <div class="form-row">
+          <div class="label">Observação do colaborador</div>
+          <div style="background:var(--od-cream-dark);padding:12px;border-radius:10px;font-size:13.5px;line-height:1.5;color:var(--od-black)">${p.obs_colaborador}</div>
+        </div>`:''}
+      <div class="form-row">
+        <label class="label">Sua observação (opcional)</label>
+        <textarea class="textarea" id="aprov-obs" rows="3" placeholder="Justifique sua decisão ou deixe feedback..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" onclick="decidirComObs('${id}',false)">Rejeitar</button>
+      <button class="btn btn-primary" onclick="decidirComObs('${id}',true)">Aprovar</button>
+    </div>
+  `);
+}
+
+async function decidir(id, aprovar) {
+  await doDecidir(id, aprovar, '');
+}
+
+async function decidirComObs(id, aprovar) {
+  const obs = document.getElementById('aprov-obs')?.value || '';
+  await doDecidir(id, aprovar, obs);
+  closeModal();
+}
+
+async function doDecidir(id, aprovar, obs) {
+  const { sb, ME } = ODARA;
+  const { data: p } = await sb.from('progressoes_competencia').select('*').eq('id', id).single();
+  if (!p) return;
+  const update = {};
+  if (p.supervisor_id === ME.id) {
+    update.supervisor_status = aprovar ? 'aprovado' : 'rejeitado';
+    update.supervisor_obs = obs;
+    update.supervisor_em = new Date().toISOString();
+  }
+  if (p.facilitador_id === ME.id) {
+    update.facilitador_status = aprovar ? 'aprovado' : 'rejeitado';
+    update.facilitador_obs = obs;
+    update.facilitador_em = new Date().toISOString();
+  }
+  const { error } = await sb.from('progressoes_competencia').update(update).eq('id', id);
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  ODARA.toast(aprovar?'✓':'✗', aprovar?'Aprovada':'Rejeitada', 'Decisão registrada');
+  await renderView();
+}
+
+// ═══════════════════════════════════════════════════════════
+// EQUIPE
+// ═══════════════════════════════════════════════════════════
+async function renderEquipe(main) {
+  const { sb, ME } = ODARA;
+  // gestor vê a própria área; admin vê todos
+  const query = sb.from('profiles').select('*').eq('ativo', true);
+  if (ME.role !== 'admin' && ME.area) query.eq('area', ME.area);
+  const { data: team, error } = await query;
+  if (error) throw error;
+
+  // progressos
+  const { data: prog } = await sb.from('progresso_conteudos').select('profile_id,status,xp_ganho');
+  const stats = {};
+  (prog||[]).forEach(p => {
+    if (!stats[p.profile_id]) stats[p.profile_id] = { xp:0, done:0 };
+    if (p.status === 'concluido') { stats[p.profile_id].done++; stats[p.profile_id].xp += (p.xp_ganho||0); }
+  });
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Minha equipe</h1>
+        <p class="main-subtitle">${(team||[]).length} colaborador${(team||[]).length!==1?'es':''} ${ME.area?'em '+ME.area:''}</p>
+      </div>
+      <div class="main-actions">
+        <input type="text" class="input" id="team-search" placeholder="Buscar..." style="width:220px">
+      </div>
+    </div>
+    <div class="team-grid" id="team-grid">
+      ${(team||[]).map(t => teamCard(t, stats[t.id]||{xp:0,done:0})).join('')}
+    </div>
+  `;
+
+  document.getElementById('team-search')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.team-card').forEach(c => {
+      c.style.display = c.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+}
+
+function teamCard(t, s) {
+  return `
+    <div class="team-card" data-name="${t.nome||''}" onclick="verPerfilColab('${t.id}')">
+      <div class="team-card-head">
+        <div class="team-avatar">${ODARA.getInitials(t.nome)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="team-name">${t.nome||'—'}</div>
+          <div class="team-role">${t.cargo||''} · ${t.turno||''}</div>
+        </div>
+      </div>
+      <div class="team-stats">
+        <div class="team-stat">
+          <div class="team-stat-num">${s.done}</div>
+          <div class="team-stat-label">Conteúdos</div>
+        </div>
+        <div class="team-stat">
+          <div class="team-stat-num">${s.xp}</div>
+          <div class="team-stat-label">XP</div>
+        </div>
+        <div class="team-stat">
+          <div class="team-stat-num">${t.role==='gestor'?'◐':t.role==='admin'?'★':'●'}</div>
+          <div class="team-stat-label">${t.role}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function verPerfilColab(id) {
+  const { sb } = ODARA;
+  const { data: p } = await sb.from('profiles').select('*').eq('id', id).single();
+  const { data: matriz } = await sb.from('matriz_competencias')
+    .select('*, competencias(nome,categoria)')
+    .eq('profile_id', id);
+
+  showModal(`
+    <div class="modal-head">
+      <div class="modal-title">${p?.nome||'Colaborador'}</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:18px">
+        <div class="team-avatar" style="width:54px;height:54px">${ODARA.getInitials(p?.nome)}</div>
+        <div>
+          <div style="font-size:16px;font-weight:600">${p?.nome}</div>
+          <div style="font-size:13px;color:var(--od-gray)">${p?.cargo||''} · ${p?.area||''}</div>
+          <div style="font-size:12px;color:var(--od-gray-light);margin-top:2px">${p?.email||''}</div>
+        </div>
+      </div>
+      <div class="label">Matriz de competências</div>
+      ${(matriz||[]).length===0 ?
+        '<p style="color:var(--od-gray);font-size:13px;text-align:center;padding:20px 0">Sem competências atribuídas.</p>' :
+        '<div style="display:flex;flex-direction:column;gap:8px">' +
+        (matriz||[]).map(m => `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:0.5px solid var(--od-line);border-radius:10px">
+            <div style="flex:1;font-size:13px;font-weight:500">${m.competencias?.nome||'—'}</div>
+            <div class="nivel-cell nivel-${m.nivel_atual||0}">${m.nivel_atual||0}</div>
+            ${m.nivel_desejado && m.nivel_desejado > (m.nivel_atual||0) ?
+              `<span style="font-size:10px;color:var(--od-red)">→ ${m.nivel_desejado}</span>` : ''}
+          </div>
+        `).join('') + '</div>'}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-primary" onclick="closeModal();VIEW='trilhas';renderView();document.querySelector('#atr-${id}')?.scrollIntoView()">Atribuir trilhas</button>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MATRIZ DA EQUIPE — tabela cruzada
+// ═══════════════════════════════════════════════════════════
+async function renderMatriz(main) {
+  const { sb, ME } = ODARA;
+  const profilesQuery = sb.from('profiles').select('*').eq('ativo', true);
+  if (ME.role !== 'admin' && ME.area) profilesQuery.eq('area', ME.area);
+  const { data: team } = await profilesQuery;
+  const { data: comps } = await sb.from('competencias').select('*').order('categoria').order('nome');
+  const { data: matriz } = await sb.from('matriz_competencias').select('*');
+
+  const matMap = {};
+  (matriz||[]).forEach(m => { matMap[`${m.profile_id}:${m.competencia_id}`] = m; });
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Matriz da equipe</h1>
+        <p class="main-subtitle">Nível atual por competência — clique numa célula para ver detalhes</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--od-gray);margin-bottom:14px;background:#fff;padding:10px 14px;border-radius:10px;border:0.5px solid var(--od-line)">
+      <span>Legenda:</span>
+      <span><span class="nivel-cell nivel-0" style="width:20px;height:20px;font-size:10px">0</span> Não conhece</span>
+      <span><span class="nivel-cell nivel-1" style="width:20px;height:20px;font-size:10px">1</span> Conhece</span>
+      <span><span class="nivel-cell nivel-2" style="width:20px;height:20px;font-size:10px">2</span> Aplica</span>
+      <span><span class="nivel-cell nivel-3" style="width:20px;height:20px;font-size:10px">3</span> Autonomia</span>
+      <span><span class="nivel-cell nivel-4" style="width:20px;height:20px;font-size:10px">4</span> Ensina</span>
+      <span style="margin-left:auto"><span class="gap-badge">-N</span> gap crítico (≥2)</span>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="sticky-col">Colaborador</th>
+            ${(comps||[]).map(c => `<th title="${c.nome}">${c.nome}</th>`).join('')}
+            <th style="writing-mode:horizontal-tb;transform:none;text-align:center;padding:0 12px">Média</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(team||[]).map(t => {
+            let sum = 0, count = 0;
+            return `<tr>
+              <td class="sticky-col">
+                <span class="avatar-mini">${ODARA.getInitials(t.nome)}</span>${t.nome || '—'}
+                <div style="font-size:10.5px;color:var(--od-gray);margin-top:2px;margin-left:38px">${t.cargo||''}</div>
+              </td>
+              ${(comps||[]).map(c => {
+                const m = matMap[`${t.id}:${c.id}`];
+                const atual = m?.nivel_atual ?? 0;
+                const desejado = m?.nivel_desejado ?? 0;
+                const gap = Math.max(0, desejado - atual);
+                if (m) { sum += atual; count++; }
+                return `<td title="${c.nome}">
+                  <span class="nivel-cell nivel-${atual}">${atual}</span>
+                  ${gap>=2?`<span class="gap-badge">-${gap}</span>`:''}
+                </td>`;
+              }).join('')}
+              <td style="font-weight:600">${count>0?(sum/count).toFixed(1):'–'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ATRIBUIR TRILHAS
+// ═══════════════════════════════════════════════════════════
+async function renderTrilhas(main) {
+  const { sb, ME } = ODARA;
+  const pQuery = sb.from('profiles').select('*').eq('ativo', true);
+  if (ME.role !== 'admin' && ME.area) pQuery.eq('area', ME.area);
+  const { data: team } = await pQuery;
+  const { data: trilhas } = await sb.from('trilhas').select('*').eq('ativa', true).order('ordem');
+  const { data: atribs } = await sb.from('trilhas_atribuicoes').select('*');
+
+  const atribMap = {};
+  (atribs||[]).forEach(a => {
+    const k = `${a.profile_id}:${a.trilha_id}`;
+    atribMap[k] = a;
+  });
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Atribuir trilhas</h1>
+        <p class="main-subtitle">Clique numa trilha para atribuir/remover do colaborador</p>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" class="input" id="atr-search" placeholder="Buscar colaborador...">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px" id="atr-list">
+      ${(team||[]).map(t => `
+        <div class="card" id="atr-${t.id}" data-name="${t.nome||''}" style="padding:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div class="avatar-mini" style="width:36px;height:36px;font-size:13px">${ODARA.getInitials(t.nome)}</div>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:14.5px">${t.nome||'—'}</div>
+              <div style="color:var(--od-gray);font-size:12px">${t.cargo||''} · ${t.area||''}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${(trilhas||[]).map(tr => {
+              const active = !!atribMap[`${t.id}:${tr.id}`];
+              return `<span class="pill ${active?'yellow':''}" style="cursor:pointer;user-select:none;${active?'':'background:#fff;border:0.5px solid var(--od-line-strong)'}"
+                onclick="toggleAtrib('${t.id}','${tr.id}',this)">${active?'✓ ':''}${tr.titulo}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('atr-search')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#atr-list > .card').forEach(c => {
+      c.style.display = c.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+}
+
+async function toggleAtrib(profileId, trilhaId, el) {
+  const { sb, ME } = ODARA;
+  const active = el.classList.contains('yellow');
+  if (active) {
+    await sb.from('trilhas_atribuicoes').delete()
+      .eq('profile_id', profileId).eq('trilha_id', trilhaId);
+    el.classList.remove('yellow');
+    el.style.background = '#fff';
+    el.style.border = '0.5px solid var(--od-line-strong)';
+    el.textContent = el.textContent.replace(/^✓ /, '');
+  } else {
+    await sb.from('trilhas_atribuicoes').insert({
+      profile_id: profileId, trilha_id: trilhaId, atribuido_por: ME.id
+    });
+    el.classList.add('yellow');
+    el.style.background = '';
+    el.style.border = '';
+    el.textContent = '✓ ' + el.textContent;
+  }
+  ODARA.toast('✓', 'Atualizado', '');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL helpers
+// ═══════════════════════════════════════════════════════════
+function showModal(html) {
+  let m = document.getElementById('od-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'od-modal';
+    m.className = 'modal';
+    m.addEventListener('click', (e) => { if (e.target === m) closeModal(); });
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div class="modal-card">${html}</div>`;
+  m.classList.add('on');
+}
+
+function closeModal() {
+  document.getElementById('od-modal')?.classList.remove('on');
+}
+
+// Boot
+boot();
+</script>
+</body>
+</html>

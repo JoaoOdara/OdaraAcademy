@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0C0C0C">
+<title>Odara Academy — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="odara.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"
+        onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';document.head.appendChild(s);"></script>
+<script src="odara-core.js"></script>
+<style>
+body{background:#FAF3E1}
+#app{min-height:100vh}
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+@media (max-width:900px){.shell{grid-template-columns:1fr;padding-bottom:80px}}
+
+.sidebar{background:var(--od-black);color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh;overflow-y:auto}
+@media (max-width:900px){
+  .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;padding:8px 0 max(8px,env(safe-area-inset-bottom));display:flex;gap:0;border-top:0.5px solid rgba(255,255,255,0.1);z-index:100;overflow-x:auto}
+  .sidebar-brand,.sidebar-user,.sidebar-section-title{display:none}
+  .sidebar-nav{display:flex;flex:1;gap:0;min-width:600px}
+  .sidebar-item{flex:1;flex-direction:column;gap:3px;padding:8px 4px;font-size:10.5px;letter-spacing:0.3px;border-radius:0;justify-content:center;min-width:75px}
+  .sidebar-item .icon{font-size:18px}
+}
+
+.sidebar-brand{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:var(--od-gray-light);letter-spacing:3px;text-transform:uppercase;padding:4px 12px 20px;border-bottom:0.5px solid rgba(255,255,255,0.08);margin-bottom:14px}
+.sidebar-brand span{color:var(--od-yellow)}
+.sidebar-section-title{font-size:10px;font-weight:700;color:var(--od-gray-light);letter-spacing:2px;text-transform:uppercase;padding:14px 14px 8px}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;color:#888;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s}
+.sidebar-item:hover{background:rgba(255,255,255,0.04);color:#fff}
+.sidebar-item.active{background:rgba(255,184,29,0.12);color:var(--od-yellow)}
+.sidebar-item .icon{font-size:17px;width:20px;text-align:center}
+
+.sidebar-user{margin-top:18px;padding:14px;border-top:0.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px}
+.sidebar-user-avatar{width:34px;height:34px;border-radius:50%;background:var(--od-yellow);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;font-family:'Barlow Condensed',sans-serif;flex-shrink:0}
+.sidebar-user-info{flex:1;min-width:0}
+.sidebar-user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-role{font-size:11px;color:var(--od-gray-light)}
+.sidebar-user-logout{color:var(--od-red);cursor:pointer;font-size:16px;padding:4px}
+
+.main{padding:32px 40px 48px;overflow-x:auto}
+@media (max-width:900px){.main{padding:20px 18px 40px}}
+
+.main-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:16px}
+.main-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;letter-spacing:-0.01em;line-height:1}
+.main-subtitle{color:var(--od-gray);font-size:14px;margin-top:4px}
+.main-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.filter-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-bar .input,.filter-bar .select{flex:0 1 auto;min-width:180px;max-width:260px}
+
+/* Tabela */
+.table-wrap{background:#fff;border-radius:var(--radius);border:0.5px solid var(--od-line);overflow:hidden;overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+table.tbl thead th{background:var(--od-cream-dark);text-align:left;padding:12px 14px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--od-gray);font-weight:700}
+table.tbl tbody td{padding:12px 14px;border-bottom:0.5px solid var(--od-line)}
+table.tbl tbody tr:last-child td{border-bottom:none}
+table.tbl tbody tr:hover{background:var(--od-cream)}
+.avatar-mini{width:28px;height:28px;border-radius:50%;background:var(--od-cream-dark);color:var(--od-black);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;font-family:'Barlow Condensed',sans-serif;margin-right:8px;vertical-align:middle}
+
+.row-actions{display:flex;gap:6px;justify-content:flex-end}
+.icon-btn{width:32px;height:32px;border-radius:8px;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--od-gray);cursor:pointer;transition:all .15s;border:none}
+.icon-btn:hover{background:var(--od-cream-dark);color:var(--od-black)}
+.icon-btn.danger:hover{background:var(--od-red-soft);color:var(--od-red)}
+
+/* Trilha editor */
+.trilha-editor{display:grid;grid-template-columns:1fr 1.3fr;gap:20px}
+@media (max-width:900px){.trilha-editor{grid-template-columns:1fr}}
+.trilha-list{background:#fff;border-radius:var(--radius);border:0.5px solid var(--od-line);padding:10px;max-height:70vh;overflow-y:auto}
+.trilha-item{padding:11px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s}
+.trilha-item:hover{background:var(--od-cream)}
+.trilha-item.active{background:var(--od-black);color:#fff}
+.trilha-item.active .t-meta{color:var(--od-gray-light)}
+.trilha-item .t-icon{width:32px;height:32px;border-radius:8px;background:var(--od-cream-dark);color:var(--od-black);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.trilha-item.active .t-icon{background:var(--od-yellow)}
+.trilha-item .t-info{flex:1;min-width:0}
+.trilha-item .t-title{font-size:13px;font-weight:600;line-height:1.2}
+.trilha-item .t-meta{font-size:11px;color:var(--od-gray);margin-top:1px}
+
+.module-card{background:var(--od-cream);border-radius:10px;padding:12px 14px;margin-bottom:8px;border:0.5px solid var(--od-line)}
+.module-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.module-header input{flex:1;background:transparent;border:none;font-size:14px;font-weight:600;outline:none;padding:4px}
+.module-header input:focus{background:#fff;border-radius:6px}
+
+.content-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:8px;margin-bottom:5px;border:0.5px solid var(--od-line)}
+.content-row .c-tipo{font-size:11px;padding:2px 7px;border-radius:99px;background:var(--od-cream-dark);color:var(--od-gray);font-weight:600}
+.content-row input{flex:1;border:none;background:transparent;outline:none;font-size:13px;min-width:0}
+
+.empty-small{padding:24px 16px;text-align:center;color:var(--od-gray);font-size:13px;border:1.5px dashed var(--od-line-strong);border-radius:10px;margin:10px 0}
+
+</style>
+</head>
+<body>
+<div id="app"><div class="loading"><div class="spinner"></div><p>Carregando…</p></div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ODARA ACADEMY — PAINEL ADMIN
+// ═══════════════════════════════════════════════════════════
+
+let VIEW = 'dashboard';
+let TRACK_SEL = null;
+const root = document.getElementById('app');
+
+async function boot() {
+  try {
+    await ODARA.initSupabase();
+    const me = await ODARA.loadMe();
+    if (!me) { ODARA.renderLogin(root, { title:'Painel Admin', onSuccess: afterLogin }); return; }
+    await afterLogin(me);
+  } catch (e) {
+    console.error(e);
+    root.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div><p>${e.message}</p>
+      <button class="btn btn-primary" onclick="location.reload()" style="margin-top:14px">Tentar novamente</button></div>`;
+  }
+}
+
+async function afterLogin(me) {
+  if (me.role !== 'admin') { ODARA.renderForbidden(root, ['admin']); return; }
+  await renderShell();
+}
+
+async function renderShell() {
+  const me = ODARA.ME;
+  root.innerHTML = `
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">Odara · <span>Admin</span></div>
+        <div class="sidebar-section-title">Visão geral</div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item ${VIEW==='dashboard'?'active':''}" onclick="go('dashboard')">
+            <span class="icon">◎</span><span>Dashboard</span>
+          </div>
+        </nav>
+        <div class="sidebar-section-title">Conteúdo</div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item ${VIEW==='trilhas'?'active':''}" onclick="go('trilhas')">
+            <span class="icon">▤</span><span>Trilhas</span>
+          </div>
+          <div class="sidebar-item ${VIEW==='curadoria'?'active':''}" onclick="go('curadoria')">
+            <span class="icon">★</span><span>Curadoria</span>
+          </div>
+        </nav>
+        <div class="sidebar-section-title">Pessoas</div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item ${VIEW==='pessoas'?'active':''}" onclick="go('pessoas')">
+            <span class="icon">◈</span><span>Colaboradores</span>
+          </div>
+          <div class="sidebar-item ${VIEW==='cargos'?'active':''}" onclick="go('cargos')">
+            <span class="icon">◇</span><span>Cargos e áreas</span>
+          </div>
+        </nav>
+        <div class="sidebar-section-title">Competências</div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item ${VIEW==='competencias'?'active':''}" onclick="go('competencias')">
+            <span class="icon">◆</span><span>Competências</span>
+          </div>
+          <div class="sidebar-item ${VIEW==='facilitadores'?'active':''}" onclick="go('facilitadores')">
+            <span class="icon">★</span><span>Facilitadores</span>
+          </div>
+          <div class="sidebar-item ${VIEW==='matriz_cargos'?'active':''}" onclick="go('matriz_cargos')">
+            <span class="icon">▦</span><span>Matriz por cargo</span>
+          </div>
+        </nav>
+        <div class="sidebar-section-title">Navegar</div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item" onclick="window.location.href='academy-gestor.html'">
+            <span class="icon">◐</span><span>Gestor</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='index.html'">
+            <span class="icon">⌂</span><span>App colaborador</span>
+          </div>
+        </nav>
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">${ODARA.getInitials(me.nome)}</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">${me.nome||'Admin'}</div>
+            <div class="sidebar-user-role">${me.role}</div>
+          </div>
+          <div class="sidebar-user-logout" onclick="ODARA.signOut().then(()=>location.reload())" title="Sair">⏻</div>
+        </div>
+      </aside>
+      <main class="main" id="main-content"><div class="loading"><div class="spinner"></div></div></main>
+    </div>
+  `;
+  await renderView();
+}
+
+async function go(view) { VIEW = view; await renderShell(); }
+
+async function renderView() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    if (VIEW === 'dashboard') await renderDashboard(main);
+    else if (VIEW === 'trilhas') await renderTrilhas(main);
+    else if (VIEW === 'curadoria') await renderCuradoria(main);
+    else if (VIEW === 'pessoas') await renderPessoas(main);
+    else if (VIEW === 'cargos') await renderCargos(main);
+    else if (VIEW === 'competencias') await renderCompetencias(main);
+    else if (VIEW === 'facilitadores') await renderFacilitadores(main);
+    else if (VIEW === 'matriz_cargos') await renderMatrizCargos(main);
+  } catch (e) {
+    console.error(e);
+    main.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div><p>${e.message}</p></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+async function renderDashboard(main) {
+  const { sb } = ODARA;
+  const [profiles, trilhas, prog, progress, pendentes] = await Promise.all([
+    sb.from('profiles').select('id,ativo,role', { count: 'exact' }),
+    sb.from('trilhas').select('id,ativa', { count: 'exact' }),
+    sb.from('progressoes_competencia').select('id,supervisor_status,facilitador_status', { count: 'exact' }),
+    sb.from('progresso_conteudos').select('status,xp_ganho'),
+    sb.from('progressoes_competencia').select('id', { count: 'exact' }).or('supervisor_status.eq.pendente,facilitador_status.eq.pendente')
+  ]);
+
+  const totalXP = (progress.data||[]).reduce((s,p)=>s+(p.xp_ganho||0),0);
+  const concluidos = (progress.data||[]).filter(p=>p.status==='concluido').length;
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Dashboard administrativo</h1>
+        <p class="main-subtitle">Visão consolidada da Odara Academy</p>
+      </div>
+    </div>
+    <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px">
+      <div class="card"><div class="label">Colaboradores ativos</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1">${(profiles.data||[]).filter(p=>p.ativo!==false).length}</div></div>
+      <div class="card"><div class="label">Trilhas ativas</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1">${(trilhas.data||[]).filter(t=>t.ativa).length}</div></div>
+      <div class="card"><div class="label">Conteúdos concluídos</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1">${concluidos}</div></div>
+      <div class="card"><div class="label">XP total distribuído</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1">${totalXP.toLocaleString('pt-BR')}</div></div>
+      <div class="card" style="background:var(--od-black);color:#fff"><div class="label" style="color:var(--od-gray-light)">Aprovações pendentes</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1;color:var(--od-yellow)">${pendentes.count||0}</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+      <div class="card" onclick="go('trilhas')" style="cursor:pointer">
+        <div class="label">Ações rápidas</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;margin-top:6px">+ Criar nova trilha</div>
+        <div style="font-size:13px;color:var(--od-gray);margin-top:4px">Organize módulos, conteúdos e testes</div>
+      </div>
+      <div class="card" onclick="go('pessoas')" style="cursor:pointer">
+        <div class="label">Ações rápidas</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;margin-top:6px">+ Adicionar colaborador</div>
+        <div style="font-size:13px;color:var(--od-gray);margin-top:4px">Cadastre novos operadores e gestores</div>
+      </div>
+      <div class="card" onclick="go('competencias')" style="cursor:pointer">
+        <div class="label">Ações rápidas</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;margin-top:6px">+ Nova competência</div>
+        <div style="font-size:13px;color:var(--od-gray);margin-top:4px">Defina habilidades a avaliar</div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TRILHAS — editor completo (lista + módulos + conteúdos)
+// ═══════════════════════════════════════════════════════════
+async function renderTrilhas(main) {
+  const { sb } = ODARA;
+  const { data: trilhas } = await sb.from('trilhas').select('*').order('ordem');
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Trilhas</h1>
+        <p class="main-subtitle">Clique numa trilha para editar módulos e conteúdos</p>
+      </div>
+      <div class="main-actions">
+        <button class="btn btn-primary" onclick="novaTrilha()">+ Nova trilha</button>
+      </div>
+    </div>
+    <div class="trilha-editor">
+      <div class="trilha-list" id="trilha-list">
+        ${(trilhas||[]).map(t => `
+          <div class="trilha-item ${TRACK_SEL===t.id?'active':''}" onclick="selTrilha('${t.id}')">
+            <div class="t-icon">${t.icone||'★'}</div>
+            <div class="t-info">
+              <div class="t-title">${t.titulo||'—'}</div>
+              <div class="t-meta">${t.ativa?'Ativa':'Inativa'} · ordem ${t.ordem||0}</div>
+            </div>
+          </div>`).join('') || '<div class="empty-small">Nenhuma trilha ainda</div>'}
+      </div>
+      <div id="trilha-detail">
+        ${TRACK_SEL ? '<div class="loading"><div class="spinner"></div></div>' :
+          '<div class="empty"><div class="empty-icon">▤</div><p class="empty-text">Selecione uma trilha à esquerda ou crie uma nova.</p></div>'}
+      </div>
+    </div>
+  `;
+
+  if (TRACK_SEL) await renderTrilhaDetail();
+}
+
+async function selTrilha(id) { TRACK_SEL = id; await renderTrilhas(document.getElementById('main-content')); }
+
+async function renderTrilhaDetail() {
+  const { sb } = ODARA;
+  const el = document.getElementById('trilha-detail');
+  const { data: t } = await sb.from('trilhas').select('*').eq('id', TRACK_SEL).single();
+  if (!t) { el.innerHTML = '<div class="empty">Trilha não encontrada</div>'; return; }
+  const { data: mods } = await sb.from('modulos').select('*').eq('trilha_id', TRACK_SEL).order('ordem');
+  const { data: conts } = await sb.from('conteudos').select('*').in('modulo_id', (mods||[]).map(m=>m.id)).order('ordem');
+
+  el.innerHTML = `
+    <div class="card" style="padding:20px">
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label class="label">Título</label>
+          <input class="input" id="t-titulo" value="${escapeHtml(t.titulo||'')}" placeholder="Ex: BPF na produção">
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label class="label">Ícone (emoji)</label>
+            <input class="input" id="t-icone" value="${escapeHtml(t.icone||'★')}" maxlength="2">
+          </div>
+          <div class="form-row">
+            <label class="label">Ordem</label>
+            <input class="input" id="t-ordem" type="number" value="${t.ordem||0}">
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="label">Descrição</label>
+        <textarea class="textarea" id="t-desc" rows="2">${escapeHtml(t.descricao||'')}</textarea>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label class="label">Categoria</label>
+          <select class="select" id="t-cat">
+            <option ${t.categoria==='qualidade'?'selected':''}>qualidade</option>
+            <option ${t.categoria==='seguranca'?'selected':''}>seguranca</option>
+            <option ${t.categoria==='producao'?'selected':''}>producao</option>
+            <option ${t.categoria==='lideranca'?'selected':''}>lideranca</option>
+            <option ${t.categoria==='geral'?'selected':''}>geral</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="label">Status</label>
+          <select class="select" id="t-ativa">
+            <option value="true" ${t.ativa?'selected':''}>Ativa</option>
+            <option value="false" ${!t.ativa?'selected':''}>Inativa</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="salvarTrilha()">Salvar trilha</button>
+        <button class="btn btn-danger" onclick="excluirTrilha()">Excluir</button>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600">Módulos e conteúdos</h3>
+        <button class="btn btn-secondary btn-sm" onclick="novoModulo()">+ Módulo</button>
+      </div>
+      ${(mods||[]).length===0 ? '<div class="empty-small">Nenhum módulo. Adicione o primeiro.</div>' :
+        (mods||[]).map(m => moduleCard(m, (conts||[]).filter(c=>c.modulo_id===m.id))).join('')}
+    </div>
+  `;
+}
+
+function moduleCard(m, conts) {
+  return `
+    <div class="module-card">
+      <div class="module-header">
+        <span class="pill dark">M${m.ordem||0}</span>
+        <input type="text" value="${escapeHtml(m.titulo||'')}" onblur="atualizarModulo('${m.id}',this.value)">
+        <button class="icon-btn" onclick="addConteudo('${m.id}')" title="Adicionar conteúdo">+</button>
+        <button class="icon-btn danger" onclick="excluirModulo('${m.id}')" title="Excluir módulo">×</button>
+      </div>
+      ${conts.length===0 ? '<div style="color:var(--od-gray);font-size:12px;padding:6px 10px">Sem conteúdos neste módulo.</div>' :
+        conts.map(c => `
+          <div class="content-row">
+            <span class="c-tipo">${c.tipo||'?'}</span>
+            <input type="text" value="${escapeHtml(c.titulo||'')}" onblur="atualizarConteudo('${c.id}','titulo',this.value)" placeholder="Título">
+            <button class="icon-btn" onclick="editarConteudo('${c.id}')" title="Editar detalhes">✎</button>
+            <button class="icon-btn danger" onclick="excluirConteudo('${c.id}')" title="Excluir">×</button>
+          </div>
+        `).join('')}
+    </div>
+  `;
+}
+
+async function novaTrilha() {
+  const titulo = prompt('Título da nova trilha:');
+  if (!titulo) return;
+  const { sb } = ODARA;
+  const { data, error } = await sb.from('trilhas').insert({ titulo, ativa: true, ordem: 99, categoria: 'geral', icone: '★' }).select().single();
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  TRACK_SEL = data.id;
+  ODARA.toast('✓', 'Criada', titulo);
+  await renderTrilhas(document.getElementById('main-content'));
+}
+
+async function salvarTrilha() {
+  const { sb } = ODARA;
+  const payload = {
+    titulo: document.getElementById('t-titulo').value.trim(),
+    icone: document.getElementById('t-icone').value.trim(),
+    ordem: parseInt(document.getElementById('t-ordem').value) || 0,
+    descricao: document.getElementById('t-desc').value.trim() || null,
+    categoria: document.getElementById('t-cat').value,
+    ativa: document.getElementById('t-ativa').value === 'true'
+  };
+  const { error } = await sb.from('trilhas').update(payload).eq('id', TRACK_SEL);
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  ODARA.toast('✓', 'Salvo', '');
+  await renderTrilhas(document.getElementById('main-content'));
+}
+
+async function excluirTrilha() {
+  if (!confirm('Excluir esta trilha e TODOS os módulos/conteúdos? Essa ação não pode ser desfeita.')) return;
+  const { sb } = ODARA;
+  const { error } = await sb.from('trilhas').delete().eq('id', TRACK_SEL);
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  TRACK_SEL = null;
+  ODARA.toast('✓', 'Excluída', '');
+  await renderTrilhas(document.getElementById('main-content'));
+}
+
+async function novoModulo() {
+  const titulo = prompt('Título do módulo:');
+  if (!titulo) return;
+  const { sb } = ODARA;
+  const { data: mods } = await sb.from('modulos').select('ordem').eq('trilha_id', TRACK_SEL);
+  const ordem = ((mods||[]).map(m=>m.ordem||0).reduce((a,b)=>Math.max(a,b),0)) + 1;
+  const { error } = await sb.from('modulos').insert({ trilha_id: TRACK_SEL, titulo, ordem });
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  await renderTrilhaDetail();
+}
+
+async function atualizarModulo(id, titulo) {
+  await ODARA.sb.from('modulos').update({ titulo }).eq('id', id);
+}
+
+async function excluirModulo(id) {
+  if (!confirm('Excluir este módulo e seus conteúdos?')) return;
+  await ODARA.sb.from('modulos').delete().eq('id', id);
+  await renderTrilhaDetail();
+}
+
+async function addConteudo(modId) {
+  const titulo = prompt('Título do conteúdo:');
+  if (!titulo) return;
+  const tipo = prompt('Tipo: video, text, audio, image', 'video');
+  if (!tipo) return;
+  const url = prompt('URL (YouTube, PDF, link externo) — opcional:', '');
+  const { sb } = ODARA;
+  const { data: cs } = await sb.from('conteudos').select('ordem').eq('modulo_id', modId);
+  const ordem = ((cs||[]).map(c=>c.ordem||0).reduce((a,b)=>Math.max(a,b),0)) + 1;
+  const { error } = await sb.from('conteudos').insert({
+    modulo_id: modId, titulo, tipo, url: url || null, ordem, xp_conclusao: 10, duracao_min: 5
+  });
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  await renderTrilhaDetail();
+}
+
+async function atualizarConteudo(id, field, value) {
+  await ODARA.sb.from('conteudos').update({ [field]: value }).eq('id', id);
+}
+
+async function editarConteudo(id) {
+  const { sb } = ODARA;
+  const { data: c } = await sb.from('conteudos').select('*').eq('id', id).single();
+  if (!c) return;
+  showModal(`
+    <div class="modal-head">
+      <div class="modal-title">Editar conteúdo</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label class="label">Título</label><input class="input" id="ec-titulo" value="${escapeHtml(c.titulo||'')}"></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label class="label">Tipo</label>
+          <select class="select" id="ec-tipo">
+            ${['video','text','audio','image'].map(t=>`<option ${c.tipo===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-row"><label class="label">Duração (min)</label><input class="input" id="ec-dur" type="number" value="${c.duracao_min||5}"></div>
+      </div>
+      <div class="form-row"><label class="label">URL / link (YouTube, PDF, etc)</label><input class="input" id="ec-url" value="${escapeHtml(c.url||'')}" placeholder="https://..."></div>
+      <div class="form-row"><label class="label">Descrição / Instruções</label><textarea class="textarea" id="ec-desc" rows="4" placeholder="Texto de apoio, instruções de atividade, etc.">${escapeHtml(c.descricao||'')}</textarea></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label class="label">XP de conclusão</label><input class="input" id="ec-xp" type="number" value="${c.xp_conclusao||10}"></div>
+        <div class="form-row"><label class="label">Ordem</label><input class="input" id="ec-ord" type="number" value="${c.ordem||0}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarConteudo('${id}')">Salvar</button>
+    </div>
+  `);
+}
+
+async function salvarConteudo(id) {
+  const payload = {
+    titulo: document.getElementById('ec-titulo').value.trim(),
+    tipo: document.getElementById('ec-tipo').value,
+    duracao_min: parseInt(document.getElementById('ec-dur').value) || 5,
+    url: document.getElementById('ec-url').value.trim() || null,
+    descricao: document.getElementById('ec-desc').value.trim() || null,
+    xp_conclusao: parseInt(document.getElementById('ec-xp').value) || 10,
+    ordem: parseInt(document.getElementById('ec-ord').value) || 0
+  };
+  const { error } = await ODARA.sb.from('conteudos').update(payload).eq('id', id);
+  if (error) { ODARA.toast('⚠', 'Erro', error.message); return; }
+  closeModal();
+  ODARA.toast('✓', 'Salvo', '');
+  await renderTrilhaDetail();
+}
+
+async function excluirConteudo(id) {
+  if (!confirm('Excluir este conteúdo?')) return;
+  await ODARA.sb.from('conteudos').delete().eq('id', id);
+  await renderTrilhaDetail();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PESSOAS / COLABORADORES
+// ═══════════════════════════════════════════════════════════
+async function renderPessoas(main) {
+  const { sb } = ODARA;
+  const { data: people } = await sb.from('profiles').select('*').order('nome');
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Colaboradores</h1>
+        <p class="main-subtitle">${(people||[]).length} pessoas cadastradas</p>
+      </div>
+      <div class="main-actions">
+        <button class="btn btn-primary" onclick="editarPessoa(null)">+ Nova pessoa</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" class="input" id="p-search" placeholder="Buscar por nome ou e-mail...">
+      <select class="select" id="p-role">
+        <option value="">Todos os perfis</option>
+        <option value="colaborador">Colaborador</option>
+        <option value="supervisor">Supervisor</option>
+        <option value="gestor">Gestor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr><th>Nome</th><th>E-mail</th><th>Cargo / Área</th><th>Perfil</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="p-body">
+          ${(people||[]).map(renderPessoaRow).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const filter = () => {
+    const q = document.getElementById('p-search').value.toLowerCase();
+    const r = document.getElementById('p-role').value;
+    document.querySelectorAll('#p-body tr').forEach(tr => {
+      const match = (!q || tr.dataset.search.includes(q)) && (!r || tr.dataset.role === r);
+      tr.style.display = match ? '' : 'none';
+    });
+  };
+  document.getElementById('p-search').addEventListener('input', filter);
+  document.getElementById('p-role').addEventListener('change', filter);
+}
+
+function renderPessoaRow(p) {
+  return `<tr data-search="${(p.nome||'').toLowerCase()} ${(p.email||'').toLowerCase()}" data-role="${p.role||''}">
+    <td><span class="avatar-mini">${ODARA.getInitials(p.nome)}</span>${p.nome||'—'}</td>
+    <td style="color:var(--od-gray);font-size:12.5px">${p.email||''}</td>
+    <td>${p.cargo||'—'}<div style="font-size:11px;color:var(--od-gray)">${p.area||''}</div></td>
+    <td><span class="pill ${p.role==='admin'?'dark':p.role==='gestor'||p.role==='supervisor'?'yellow':''}">${p.role||'colaborador'}</span></td>
+    <td><span class="pill ${p.ativo!==false?'green':'red'}">${p.ativo!==false?'Ativo':'Inativo'}</span></td>
+    <td><div class="row-actions">
+      <button class="icon-btn" onclick="editarPessoa('${p.id}')" title="Editar">✎</button>
+      <button class="icon-btn danger" onclick="toggleAtivo('${p.id}',${p.ativo===false})" title="${p.ativo===false?'Ativar':'Desativar'}">${p.ativo===false?'↑':'↓'}</button>
+    </div></td>
+  </tr>`;
+}
+
+async function editarPessoa(id) {
+  const { sb } = ODARA;
+  const isNew = !id;
+  const p = isNew ? { nome:'', email:'', cargo:'', area:'', turno:'', role:'colaborador', ativo:true } :
+    (await sb.from('profiles').select('*').eq('id', id).single()).data;
+  if (!p) return;
+
+  showModal(`
+    <div class="modal-head">
+      <div class="modal-title">${isNew?'Nova pessoa':'Editar pessoa'}</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label class="label">Nome completo *</label><input class="input" id="p-nome" value="${escapeHtml(p.nome||'')}"></div>
+      <div class="form-row"><label class="label">E-mail *</label><input class="input" id="p-email" type="email" value="${escapeHtml(p.email||'')}" ${isNew?'':'disabled'}></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label class="label">Cargo</label><input class="input" id="p-cargo" value="${escapeHtml(p.cargo||'')}"></div>
+        <div class="form-row"><label class="label">Área</label><input class="input" id="p-area" value="${escapeHtml(p.area||'')}"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label class="label">Turno</label>
+          <select class="select" id="p-turno">
+            <option value="">—</option>
+            <option ${p.turno==='manha'?'selected':''}>manha</option>
+            <option ${p.turno==='tarde'?'selected':''}>tarde</option>
+            <option ${p.turno==='noite'?'selected':''}>noite</option>
+            <option ${p.turno==='integral'?'selected':''}>integral</option>
+          </select>
+        </div>
+        <div class="form-row"><label class="label">Perfil de acesso *</label>
+          <select class="select" id="p-role">
+            <option value="colaborador" ${p.role==='colaborador'?'selected':''}>Colaborador</option>
+            <option value="supervisor" ${p.role==='supervisor'?'selected':''}>Supervisor</option>
+            <option value="gestor" ${p.role==='gestor'?'selected':''}>Gestor</option>
+            <option value="admin" ${p.role==='admin'?'selected':''}>Admin</option>
+          </select>
+        </div>
+      </div>
+      ${isNew?`<div style="background:var(--od-yellow-soft);padding:12px;border-radius:10px;font-size:12.5px;color:#8A5E00">
+        ℹ A pessoa precisa ter conta no Supabase Auth antes. Em seguida, o perfil é associado pelo e-mail.
+      </div>`:''}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPessoa(${isNew?'null':`'${id}'`})">Salvar</button>
+    </div>
+  `);
+}
+
+async function salvarPessoa(id) {
+  const payload = {
+    nome: document.getElementById('p-nome').value.trim(),
+    cargo: document.getElementById('p-cargo').value.trim() || null,
+    area: document.getElementById('p-area').value.trim() || null,
+    turno: document.getElementById('p-turno').value || null,
+    role: document.getElementById('p-role').value
+  };
+  if (!payload.nome) { ODARA.toast('⚠','Nome','Obrigatório'); return; }
+  const { sb } = ODARA;
+  let error;
+  if (id) {
+    ({ error } = await sb.from('profiles').update(payload).eq('id', id));
+  } else {
+    const email = document.getElementById('p-email').value.trim();
+    if (!email) { ODARA.toast('⚠','Email','Obrigatório'); return; }
+    // tenta achar profile existente por email (auth já criou)
+    const { data: existing } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
+    if (existing) {
+      ({ error } = await sb.from('profiles').update(payload).eq('id', existing.id));
+    } else {
+      ({ error } = await sb.from('profiles').insert({ ...payload, email, ativo: true }));
+    }
+  }
+  if (error) { ODARA.toast('⚠','Erro',error.message); return; }
+  closeModal();
+  ODARA.toast('✓','Salvo','');
+  await renderView();
+}
+
+async function toggleAtivo(id, novo) {
+  await ODARA.sb.from('profiles').update({ ativo: novo }).eq('id', id);
+  await renderView();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARGOS E ÁREAS
+// ═══════════════════════════════════════════════════════════
+async function renderCargos(main) {
+  const { sb } = ODARA;
+  const [cargos, areas] = await Promise.all([
+    sb.from('cargos').select('*').order('nome'),
+    sb.from('areas').select('*').order('nome')
+  ]);
+
+  main.innerHTML = `
+    <div class="main-header">
+      <h1 class="main-title">Cargos e áreas</h1>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600">Cargos (${(cargos.data||[]).length})</h3>
+          <button class="btn btn-secondary btn-sm" onclick="novoItem('cargos','Nome do cargo')">+ Adicionar</button>
+        </div>
+        <div class="card" style="padding:0">
+          ${(cargos.data||[]).length===0?'<div class="empty-small">Sem cargos</div>':
+            (cargos.data||[]).map(c => `
+              <div style="padding:12px 14px;border-bottom:0.5px solid var(--od-line);display:flex;align-items:center;gap:8px">
+                <span style="flex:1">${c.nome}</span>
+                <button class="icon-btn danger" onclick="excluirItem('cargos','${c.id}')">×</button>
+              </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600">Áreas (${(areas.data||[]).length})</h3>
+          <button class="btn btn-secondary btn-sm" onclick="novoItem('areas','Nome da área')">+ Adicionar</button>
+        </div>
+        <div class="card" style="padding:0">
+          ${(areas.data||[]).length===0?'<div class="empty-small">Sem áreas</div>':
+            (areas.data||[]).map(a => `
+              <div style="padding:12px 14px;border-bottom:0.5px solid var(--od-line);display:flex;align-items:center;gap:8px">
+                <span style="flex:1">${a.nome}</span>
+                <button class="icon-btn danger" onclick="excluirItem('areas','${a.id}')">×</button>
+              </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function novoItem(table, prompt_label) {
+  const nome = prompt(prompt_label + ':');
+  if (!nome) return;
+  const { error } = await ODARA.sb.from(table).insert({ nome });
+  if (error) { ODARA.toast('⚠','Erro',error.message); return; }
+  await renderView();
+}
+
+async function excluirItem(table, id) {
+  if (!confirm('Excluir?')) return;
+  const { error } = await ODARA.sb.from(table).delete().eq('id', id);
+  if (error) { ODARA.toast('⚠','Erro',error.message); return; }
+  await renderView();
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPETÊNCIAS
+// ═══════════════════════════════════════════════════════════
+async function renderCompetencias(main) {
+  const { sb } = ODARA;
+  const { data: comps } = await sb.from('competencias').select('*').order('categoria').order('nome');
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Competências</h1>
+        <p class="main-subtitle">Habilidades avaliadas na matriz de cada colaborador</p>
+      </div>
+      <div class="main-actions">
+        <button class="btn btn-primary" onclick="editarComp(null)">+ Nova competência</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Nome</th><th>Categoria</th><th>Descrição</th><th></th></tr></thead>
+        <tbody>
+          ${(comps||[]).map(c => `
+            <tr>
+              <td><strong>${escapeHtml(c.nome)}</strong></td>
+              <td><span class="pill">${c.categoria||'—'}</span></td>
+              <td style="color:var(--od-gray);font-size:12.5px">${escapeHtml(c.descricao||'')}</td>
+              <td><div class="row-actions">
+                <button class="icon-btn" onclick="editarComp('${c.id}')">✎</button>
+                <button class="icon-btn danger" onclick="excluirItem('competencias','${c.id}')">×</button>
+              </div></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function editarComp(id) {
+  const { sb } = ODARA;
+  const isNew = !id;
+  const c = isNew ? { nome:'', categoria:'qualidade', descricao:'' } :
+    (await sb.from('competencias').select('*').eq('id', id).single()).data;
+
+  showModal(`
+    <div class="modal-head">
+      <div class="modal-title">${isNew?'Nova competência':'Editar competência'}</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label class="label">Nome *</label><input class="input" id="c-nome" value="${escapeHtml(c.nome||'')}"></div>
+      <div class="form-row"><label class="label">Categoria</label>
+        <select class="select" id="c-cat">
+          <option ${c.categoria==='qualidade'?'selected':''}>qualidade</option>
+          <option ${c.categoria==='seguranca'?'selected':''}>seguranca</option>
+          <option ${c.categoria==='desenvolvimento_operacional'?'selected':''}>desenvolvimento_operacional</option>
+          <option ${c.categoria==='lideranca'?'selected':''}>lideranca</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="label">Descrição</label><textarea class="textarea" id="c-desc" rows="3">${escapeHtml(c.descricao||'')}</textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarComp(${isNew?'null':`'${id}'`})">Salvar</button>
+    </div>
+  `);
+}
+
+async function salvarComp(id) {
+  const payload = {
+    nome: document.getElementById('c-nome').value.trim(),
+    categoria: document.getElementById('c-cat').value,
+    descricao: document.getElementById('c-desc').value.trim() || null
+  };
+  if (!payload.nome) { ODARA.toast('⚠','Nome','Obrigatório'); return; }
+  const op = id ? ODARA.sb.from('competencias').update(payload).eq('id', id)
+                : ODARA.sb.from('competencias').insert(payload);
+  const { error } = await op;
+  if (error) { ODARA.toast('⚠','Erro',error.message); return; }
+  closeModal();
+  await renderView();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FACILITADORES — quem valida o quê
+// ═══════════════════════════════════════════════════════════
+async function renderFacilitadores(main) {
+  const { sb } = ODARA;
+  const { data: comps } = await sb.from('competencias').select('*').order('nome');
+  const { data: people } = await sb.from('profiles').select('id,nome,role,cargo').eq('ativo', true);
+  const { data: matriz } = await sb.from('matriz_competencias').select('*');
+
+  // identifica quem pode validar cada competência (nível 4)
+  const validators = {};
+  (matriz||[]).forEach(m => {
+    if ((m.nivel_atual||0) >= 4) {
+      if (!validators[m.competencia_id]) validators[m.competencia_id] = [];
+      const p = (people||[]).find(x => x.id === m.profile_id);
+      if (p) validators[m.competencia_id].push(p);
+    }
+  });
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Facilitadores por competência</h1>
+        <p class="main-subtitle">Colaboradores com nível "Ensina" (4) em cada competência — habilitados a validar progressões</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Competência</th><th>Categoria</th><th>Facilitadores</th></tr></thead>
+        <tbody>
+          ${(comps||[]).map(c => `
+            <tr>
+              <td><strong>${escapeHtml(c.nome)}</strong></td>
+              <td><span class="pill">${c.categoria||'—'}</span></td>
+              <td>
+                ${(validators[c.id]||[]).length===0?
+                  '<span style="color:var(--od-red);font-size:12px">⚠ Nenhum facilitador (ninguém nível 4)</span>' :
+                  (validators[c.id]||[]).map(v => `<span class="pill yellow" style="margin-right:4px">${ODARA.getInitials(v.nome)} ${v.nome}</span>`).join('')
+                }
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px;padding:14px;background:var(--od-cream-dark);border-radius:10px;font-size:12.5px;color:var(--od-gray);line-height:1.5">
+      Para atribuir alguém como facilitador de uma competência, vá em <strong>Matriz por cargo</strong> ou na matriz individual do colaborador (Gestor → Minha equipe) e eleve seu nível para <strong>4 (Ensina)</strong>. Ele passa a receber notificações de validação automaticamente.
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MATRIZ POR CARGO — edita nível desejado padrão
+// ═══════════════════════════════════════════════════════════
+async function renderMatrizCargos(main) {
+  const { sb } = ODARA;
+  const { data: cargos } = await sb.from('cargos').select('*').order('nome');
+  const { data: comps } = await sb.from('competencias').select('*').order('categoria').order('nome');
+  const { data: exp } = await sb.from('expectativa_cargo').select('*').catch(() => ({data:[]}));
+
+  const expMap = {};
+  (exp||[]).forEach(e => { expMap[`${e.cargo_id}:${e.competencia_id}`] = e.nivel_desejado; });
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Matriz por cargo</h1>
+        <p class="main-subtitle">Nível desejado de cada competência para cada cargo. Clique para editar.</p>
+      </div>
+    </div>
+    <div class="table-wrap" style="max-height:70vh">
+      <table class="tbl" style="min-width:${200+(comps||[]).length*80}px">
+        <thead><tr>
+          <th>Cargo</th>
+          ${(comps||[]).map(c => `<th style="writing-mode:vertical-rl;transform:rotate(180deg);text-align:left;min-width:60px;height:110px">${escapeHtml(c.nome)}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${(cargos||[]).map(cg => `
+            <tr>
+              <td style="font-weight:600">${escapeHtml(cg.nome)}</td>
+              ${(comps||[]).map(c => {
+                const n = expMap[`${cg.id}:${c.id}`] || 0;
+                return `<td style="text-align:center;padding:6px">
+                  <select class="select" style="padding:4px 6px;font-size:12px;width:56px" onchange="salvarExp('${cg.id}','${c.id}',this.value)">
+                    <option value="0" ${n==0?'selected':''}>–</option>
+                    <option value="1" ${n==1?'selected':''}>1</option>
+                    <option value="2" ${n==2?'selected':''}>2</option>
+                    <option value="3" ${n==3?'selected':''}>3</option>
+                    <option value="4" ${n==4?'selected':''}>4</option>
+                  </select>
+                </td>`;
+              }).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px;padding:14px;background:var(--od-cream-dark);border-radius:10px;font-size:12.5px;color:var(--od-gray);line-height:1.5">
+      ℹ Se a tabela <code>expectativa_cargo</code> ainda não existir no banco, os valores não serão salvos. Rode a migração SQL correspondente.
+    </div>
+  `;
+}
+
+async function salvarExp(cargo_id, competencia_id, nivel) {
+  const n = parseInt(nivel);
+  const { sb } = ODARA;
+  if (n === 0) {
+    await sb.from('expectativa_cargo').delete().eq('cargo_id', cargo_id).eq('competencia_id', competencia_id);
+  } else {
+    await sb.from('expectativa_cargo').upsert({ cargo_id, competencia_id, nivel_desejado: n }, { onConflict: 'cargo_id,competencia_id' });
+  }
+  ODARA.toast('✓','Salvo','');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CURADORIA — reaproveita tabela curadoria_externa
+// ═══════════════════════════════════════════════════════════
+async function renderCuradoria(main) {
+  const { sb } = ODARA;
+  const { data } = await sb.from('curadoria_externa').select('*')
+    .order('destaque', { ascending: false }).order('created_at', { ascending: false });
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h1 class="main-title">Curadoria externa</h1>
+        <p class="main-subtitle">${(data||[]).length} itens — cursos e materiais gratuitos</p>
+      </div>
+      <div class="main-actions">
+        <button class="btn btn-primary" onclick="editarCur(null)">+ Novo item</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Título</th><th>Área</th><th>Formato</th><th>Fonte</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${(data||[]).map(it => `
+            <tr>
+              <td><strong>${it.destaque?'★ ':''}${escapeHtml(it.titulo)}</strong></td>
+              <td><span class="pill">${it.area||'—'}</span></td>
+              <td><span class="pill">${it.formato||'—'}</span></td>
+              <td style="color:var(--od-gray);font-size:12.5px">${escapeHtml(it.fonte||'—')}</td>
+              <td><span class="pill ${it.ativo?'green':'red'}">${it.ativo?'Ativo':'Inativo'}</span></td>
+              <td><div class="row-actions">
+                <button class="icon-btn" onclick="editarCur('${it.id}')">✎</button>
+                <button class="icon-btn" onclick="toggleCurAtivo('${it.id}',${!it.ativo})">${it.ativo?'↓':'↑'}</button>
+                <button class="icon-btn danger" onclick="excluirItem('curadoria_externa','${it.id}')">×</button>
+              </div></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function editarCur(id) {
+  const { sb } = ODARA;
+  const isNew = !id;
+  const it = isNew ? { titulo:'', descricao:'', url:'', fonte:'', area:'Qualidade', formato:'video', duracao_min:null, nivel:'todos', destaque:false } :
+    (await sb.from('curadoria_externa').select('*').eq('id', id).single()).data;
+
+  showModal(`
+    <div class="modal-head">
+      <div class="modal-title">${isNew?'Novo item':'Editar item'}</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label class="label">Título *</label><input class="input" id="cu-t" value="${escapeHtml(it.titulo||'')}"></div>
+      <div class="form-row"><label class="label">Descrição</label><textarea class="textarea" id="cu-d" rows="2">${escapeHtml(it.descricao||'')}</textarea></div>
+      <div class="form-row"><label class="label">URL *</label><input class="input" id="cu-u" value="${escapeHtml(it.url||'')}"></div>
+      <div class="form-row"><label class="label">Fonte (ex: SENAI, YouTube)</label><input class="input" id="cu-f" value="${escapeHtml(it.fonte||'')}"></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label class="label">Área</label>
+          <select class="select" id="cu-a">
+            ${['Qualidade','Produção','Liderança','Segurança','Manutenção','Geral'].map(a=>`<option ${it.area===a?'selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-row"><label class="label">Formato</label>
+          <select class="select" id="cu-fm">
+            ${['video','curso','artigo','podcast','ebook','planilha'].map(f=>`<option ${it.formato===f?'selected':''}>${f}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label class="label">Duração (min)</label><input class="input" id="cu-dur" type="number" value="${it.duracao_min||''}"></div>
+        <div class="form-row"><label class="label">Nível</label>
+          <select class="select" id="cu-n">
+            <option value="todos" ${it.nivel==='todos'?'selected':''}>Todos</option>
+            <option value="iniciante" ${it.nivel==='iniciante'?'selected':''}>Iniciante</option>
+            <option value="intermediario" ${it.nivel==='intermediario'?'selected':''}>Intermediário</option>
+            <option value="avancado" ${it.nivel==='avancado'?'selected':''}>Avançado</option>
+          </select>
+        </div>
+      </div>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cu-des" ${it.destaque?'checked':''}> <span>Marcar como destaque (★)</span></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCur(${isNew?'null':`'${id}'`})">Salvar</button>
+    </div>
+  `);
+}
+
+async function salvarCur(id) {
+  const payload = {
+    titulo: document.getElementById('cu-t').value.trim(),
+    descricao: document.getElementById('cu-d').value.trim() || null,
+    url: document.getElementById('cu-u').value.trim(),
+    fonte: document.getElementById('cu-f').value.trim() || null,
+    area: document.getElementById('cu-a').value,
+    formato: document.getElementById('cu-fm').value,
+    duracao_min: parseInt(document.getElementById('cu-dur').value) || null,
+    nivel: document.getElementById('cu-n').value,
+    destaque: document.getElementById('cu-des').checked
+  };
+  if (!payload.titulo || !payload.url) { ODARA.toast('⚠','Campos','Título e URL obrigatórios'); return; }
+  const op = id ? ODARA.sb.from('curadoria_externa').update(payload).eq('id', id)
+                : ODARA.sb.from('curadoria_externa').insert(payload);
+  const { error } = await op;
+  if (error) { ODARA.toast('⚠','Erro',error.message); return; }
+  closeModal();
+  await renderView();
+}
+
+async function toggleCurAtivo(id, novo) {
+  await ODARA.sb.from('curadoria_externa').update({ ativo: novo }).eq('id', id);
+  await renderView();
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showModal(html) {
+  let m = document.getElementById('od-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'od-modal';
+    m.className = 'modal';
+    m.addEventListener('click', e => { if (e.target === m) closeModal(); });
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div class="modal-card">${html}</div>`;
+  m.classList.add('on');
+}
+function closeModal() { document.getElementById('od-modal')?.classList.remove('on'); }
+
+boot();
+</script>
+</body>
+</html>
